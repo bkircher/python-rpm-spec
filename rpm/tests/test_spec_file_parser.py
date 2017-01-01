@@ -30,6 +30,13 @@ class TestSpecFileParser(unittest.TestCase):
             'llvm-config.h',
             spec.sources[1])
 
+        self.assertEqual(1, len(spec.patches))
+        self.assertEqual('llvm-3.7.1-cmake-s390.patch', spec.patches[0])
+
+
+class TestReplaceMacro(unittest.TestCase):
+    def test_replace_macro_with_spec(self):
+        spec = Spec.from_file('llvm.spec')
         self.assertEqual(
             'http://llvm.org/releases/3.8.0/llvm-3.8.0.src.tar.xz',
             replace_macros(spec.sources[0], spec))
@@ -37,8 +44,13 @@ class TestSpecFileParser(unittest.TestCase):
             'llvm-config.h',
             replace_macros(spec.sources[1], spec))
 
-        self.assertEqual(1, len(spec.patches))
-        self.assertEqual('llvm-3.7.1-cmake-s390.patch', spec.patches[0])
+    def test_replace_without_spec(self):
+        s = 'http://llvm.org/releases/%{version}/%{name}-%{version}.src.tar.xz'
+        self.assertEqual(s, replace_macros(s, spec=None))
+
+    def test_replace_unknown_macro(self):
+        s = '%{foobar}'
+        self.assertEqual(s, replace_macros(s, spec=None))
 
 
 if __name__ == '__main__':

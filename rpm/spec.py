@@ -87,5 +87,6 @@ def replace_macros(string, spec=None):
             value = getattr(spec, attr_name, None)
             if value:
                 return value
+        return match.string[match.start():match.end()]
 
     return re.sub(_macro_pattern, _macro_repl, string)
