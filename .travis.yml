@@ -10,6 +10,3 @@ install:
 
 script:
   - py.test --cov=rpm.spec tests
-
-after_success:
-  - codecov
