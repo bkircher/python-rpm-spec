@@ -19,6 +19,14 @@ print(spec.sources[0])  # http://llvm.org/releases/%{version}/%{name}-%{version}
 print(replace_macros(spec.sources[0], spec))  # http://llvm.org/releases/3.8.0/llvm-3.8.0.src.tar.xz
 ```
 
+## Install
+
+python-rpm-spec is hosted on PyPI - the Python Package Index. So all you need to do is
+
+```bash
+$ pip install python-rpm-spec
+```
+
 ## Dependencies
 Except Python 3 no extra dependencies are required.
 
