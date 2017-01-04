@@ -4,7 +4,7 @@ setup(
     name='python-rpm-spec',
     packages=['rpm'],
     version='0.1',
-    description='module for parsing RPM spec files.',
+    description='Module for parsing RPM spec files.',
     author='Benjamin Kircher',
     author_email='benjamin.kircher@gmail.com',
     url='https://github.com/bkircher/python-rpm-spec',  # use the URL to the GitHub repo
