@@ -35,5 +35,18 @@ This module does not parse everything of a spec file. Only the pieces I needed.
 So there is probably still plenty of stuff missing. However, it should not be
 terribly complicated to add support for the missing pieces.
 
+## Development
+If you want to hack on this module you could start with following recipe:
+
+```bash
+$ git clone https://github.com/bkircher/python-rpm-spec.git  # Clone the repo
+$ cd python-rpm-spec  #  Change into the source directory
+$ mkdir .venv && python3 -m venv .venv  # Create a virtual environment
+$ source .venv/bin/activate  # Activate it
+$ pip install pytest  # Install py.test
+$ pytest  # Execute all tests
+```
+Happy hacking!
+
 <!-- vim: et sw=4 ts=4:
 -->
