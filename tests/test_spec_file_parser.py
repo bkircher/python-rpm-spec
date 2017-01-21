@@ -11,7 +11,9 @@ class TestSpecFileParser:
         assert isinstance(spec, Spec)
 
         assert 'perl-Array-Compare' == spec.name
-        assert 'Perl extension for comparing arrays' == spec.summary
+
+        summary_info = {'Default': ['Perl extension for comparing arrays']}
+        assert summary_info == spec.summary
         assert 1 == spec.epoch
 
         assert '1.16' == spec.version
@@ -48,3 +50,9 @@ class TestReplaceMacro:
     def test_replace_unknown_macro(self):
         s = '%{foobar}'
         assert s == replace_macros(s, spec=None)
+
+    def test_replace_macro_int_type_val(self):
+        spec = Spec.from_file(os.path.join(CURRENT_DIR, 'perl-Array-Compare.spec'))
+        s = '%{epoch}'
+        print(replace_macros(s, spec))
+        assert '1' == replace_macros(s, spec)
