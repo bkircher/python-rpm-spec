@@ -29,6 +29,7 @@ _tags = {
     'patches': (list, re.compile(r'^Patch\d*:\s*(\S+)')),
     'build_requires': (list, re.compile(r'^BuildRequires:\s*(.+)')),
     'requires': (list, re.compile(r'^Requires:\s*(.+)')),
+    'packages': (list, re.compile(r'^%package\s+(\S+)'))
 }
 
 _macro_pattern = re.compile(r'%\{(\S+?)\}')
@@ -40,10 +41,25 @@ def _parse(spec_obj, line):
         match = re.search(regex, line)
         if match:
             tag_value = match.group(1)
+
+            if name == 'name':
+                spec_obj.packages = []
+                spec_obj.packages.append(Package(tag_value))
+
             if attr_type is list:
                 if not hasattr(spec_obj, name):
                     setattr(spec_obj, name, list())
-                getattr(spec_obj, name).append(tag_value)
+
+                if name == 'packages':
+                    if tag_value == '-n':
+                        subpackage_name = line.rsplit(' ', 1)[-1].rstrip()
+                    else:
+                        subpackage_name = '{}-{}'.format(spec_obj.name, tag_value)
+                    package = Package(subpackage_name)
+                    package.is_subpackage = True
+                    spec_obj.packages.append(package)
+                else:
+                    getattr(spec_obj, name).append(tag_value)
             else:
                 setattr(spec_obj, name, attr_type(tag_value))
     return spec_obj
