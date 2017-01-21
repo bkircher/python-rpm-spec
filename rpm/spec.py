@@ -12,7 +12,7 @@ add support for the missing pieces.
 
 import re
 
-__all__ = ['Spec', 'replace_macros']
+__all__ = ['Spec', 'replace_macros', 'Package']
 
 _tags = {
     'name': (str, re.compile(r'^Name:\s*(\S+)')),
@@ -47,6 +47,57 @@ def _parse(spec_obj, line):
             else:
                 setattr(spec_obj, name, attr_type(tag_value))
     return spec_obj
+
+
+class Package:
+    """Represents a single package in a RPM spec file.
+
+    Each spec file describes at least one package and can contain one or more subpackages (described
+    by the %package directive). For example, consider following spec file::
+
+        Name:           foo
+        Version:        0.1
+
+        %description
+        %{name} is the library that everyone needs.
+
+        %package devel
+        Summary: Header files, libraries and development documentation for %{name}
+        Group: Development/Libraries
+        Requires: %{name}%{?_isa} = %{version}-%{release}
+
+        %description devel
+        This package contains the header files, static libraries, and development
+        documentation for %{name}. If you like to develop programs using %{name}, you
+        will need to install %{name}-devel.
+
+        %package -n bar
+        Summary: A command line client for foo.
+        License: GPLv2+
+
+        %description -n bar
+        This package contains a command line client for foo.
+
+    This spec file will create three packages:
+
+    * A package named foo, the base package.
+    * A package named foo-devel, a subpackage.
+    * A package named bar, also a subpackage.
+
+    As you can see above, the name of a subpackage normally includes the main package name. When the
+    -n option is added to the %package directive, the prefix of the base package name is omitted and
+    a completely new name is used.
+
+    """
+
+    def __init__(self, name):
+        assert isinstance(name, str)
+
+        self.name = name
+        self.is_subpackage = False
+
+    def __repr__(self):
+        return "Package('{}')".format(self.name)
 
 
 class Spec:

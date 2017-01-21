@@ -1,8 +1,19 @@
 import os.path
 
-from rpm.spec import Spec, replace_macros
+from rpm.spec import Package, Spec, replace_macros
 
 CURRENT_DIR = os.path.dirname(os.path.realpath(__file__))
+
+
+class TestPackageClass:
+    def test_repr_string(self):
+        package = Package('foo')
+        assert package.name == 'foo'
+        assert str(package) == "Package('foo')"
+
+    def test_is_subpackage(self):
+        package = Package('foo')
+        assert package.is_subpackage is False
 
 
 class TestSpecFileParser:
