@@ -70,6 +70,25 @@ class TestSpecFileParser:
         for name in expected:
             assert name in actual
 
+    def test_packages_dict_property(self):
+        spec = Spec.from_file(os.path.join(CURRENT_DIR, 'perl-Array-Compare.spec'))
+        assert isinstance(spec.packages_dict, dict)
+        assert len(spec.packages_dict) == len(spec.packages)
+
+        spec = Spec.from_file(os.path.join(CURRENT_DIR, 'llvm.spec'))
+        assert isinstance(spec.packages_dict, dict)
+        assert len(spec.packages_dict) == len(spec.packages)
+
+    def test_subpackage_tags(self):
+        spec = Spec.from_file(os.path.join(CURRENT_DIR, 'jsrdbg.spec'))
+
+        # Summary: tag
+        assert spec.summary == 'JavaScript Remote Debugger for SpiderMonkey'
+        packages = spec.packages_dict
+        assert packages['jsrdbg-devel'].summary == \
+            'Header files, libraries and development documentation for %{name}'
+        assert packages['jrdb'].summary == 'A command line debugger client for %{name}'
+
 
 class TestReplaceMacro:
     def test_replace_macro_with_spec(self):

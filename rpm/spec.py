@@ -35,7 +35,7 @@ _tags = {
 _macro_pattern = re.compile(r'%\{(\S+?)\}')
 
 
-def _parse(spec_obj, line):
+def _parse(spec_obj, context, line):
     for name, value in _tags.items():
         attr_type, regex = value
         match = re.search(regex, line)
@@ -46,9 +46,13 @@ def _parse(spec_obj, line):
                 spec_obj.packages = []
                 spec_obj.packages.append(Package(tag_value))
 
+            target_obj = spec_obj
+            if context['current_subpackage'] is not None:
+                target_obj = context['current_subpackage']
+
             if attr_type is list:
-                if not hasattr(spec_obj, name):
-                    setattr(spec_obj, name, list())
+                if not hasattr(target_obj, name):
+                    setattr(target_obj, name, list())
 
                 if name == 'packages':
                     if tag_value == '-n':
@@ -56,13 +60,14 @@ def _parse(spec_obj, line):
                     else:
                         subpackage_name = '{}-{}'.format(spec_obj.name, tag_value)
                     package = Package(subpackage_name)
+                    context['current_subpackage'] = package
                     package.is_subpackage = True
                     spec_obj.packages.append(package)
                 else:
-                    getattr(spec_obj, name).append(tag_value)
+                    getattr(target_obj, name).append(tag_value)
             else:
-                setattr(spec_obj, name, attr_type(tag_value))
-    return spec_obj
+                setattr(target_obj, name, attr_type(tag_value))
+    return spec_obj, context
 
 
 class Package:
@@ -98,7 +103,7 @@ class Package:
 
     * A package named foo, the base package.
     * A package named foo-devel, a subpackage.
-    * A package named bar, also a subpackage.
+    * A package named bar, also a subpackage, but without the foo- prefix.
 
     As you can see above, the name of a subpackage normally includes the main package name. When the
     -n option is added to the %package directive, the prefix of the base package name is omitted and
@@ -121,6 +126,18 @@ class Spec:
 
     """
 
+    @property
+    def packages_dict(self):
+        """All packages in this RPM spec as a dictionary.
+
+        You can access the individual packages by their package name, e.g.,
+
+        git_spec.packages_dict['git-doc']
+
+        """
+        assert self.packages
+        return dict(zip([package.name for package in self.packages], self.packages))
+
     @staticmethod
     def from_file(filename):
         """Creates a new Spec object from a given file.
@@ -131,8 +148,11 @@ class Spec:
 
         spec = Spec()
         with open(filename, 'r') as f:
+            parse_context = {
+                'current_subpackage': None
+            }
             for line in f:
-                spec = _parse(spec, line)
+                spec, parse_context = _parse(spec, parse_context, line)
         return spec
 
 
