@@ -77,6 +77,8 @@ def replace_macros(string, spec=None):
     TODO: There is also `rpm --eval "%{macro}"` which could give us the expanded definition of a
     macro. Useful for macros that are global, e.g. %{_build_arch}.
 
+    :return A string where all macros in given input are substituted as good as possible.
+
     """
     if spec:
         assert isinstance(spec, Spec)
