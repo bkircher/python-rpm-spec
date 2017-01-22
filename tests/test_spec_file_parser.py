@@ -48,3 +48,8 @@ class TestReplaceMacro:
     def test_replace_unknown_macro(self):
         s = '%{foobar}'
         assert s == replace_macros(s, spec=None)
+
+    def test_replace_macro_int_type_val(self):
+        spec = Spec.from_file(os.path.join(CURRENT_DIR, 'perl-Array-Compare.spec'))
+        result = replace_macros('%{epoch}', spec)
+        assert isinstance(result, str)
