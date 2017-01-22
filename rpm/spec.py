@@ -19,7 +19,7 @@ _tags = {
     'version': (str, re.compile(r'^Version:\s*(\S+)')),
     'epoch': (int, re.compile(r'^Epoch:\s*(\S+)')),
     'release': (str, re.compile(r'^Release:\s*(\S+)')),
-    'summary': (str, re.compile(r'^Summary:\s*(.+)')),
+    'summary': (dict, re.compile(r'^Summary:\s*(.+)')),
     'license': (str, re.compile(r'^License:\s*(.+)')),
     'group': (str, re.compile(r'^Group:\s*(\S+)')),
     'url': (str, re.compile(r'^URL:\s*(\S+)')),
@@ -29,6 +29,8 @@ _tags = {
     'patches': (list, re.compile(r'^Patch\d*:\s*(\S+)')),
     'build_requires': (list, re.compile(r'^BuildRequires:\s*(.+)')),
     'requires': (list, re.compile(r'^Requires:\s*(.+)')),
+    'packages': (list, re.compile(r'%package\s*(.+)')),
+    'requires_all': (dict, re.compile(r'^Requires:\s*(.+)')),
 }
 
 _macro_pattern = re.compile(r'%\{(\S+?)\}')
@@ -40,10 +42,21 @@ def _parse(spec_obj, line):
         match = re.search(regex, line)
         if match:
             tag_value = match.group(1)
+            if name == "packages":
+                spec_obj.last_packages = tag_value
+
             if attr_type is list:
                 if not hasattr(spec_obj, name):
                     setattr(spec_obj, name, list())
                 getattr(spec_obj, name).append(tag_value)
+            elif attr_type is dict:
+                dict_key = spec_obj.last_packages
+                if not hasattr(spec_obj, name):
+                    setattr(spec_obj, name, {})
+                if not hasattr(getattr(spec_obj, name), dict_key):
+                    getattr(spec_obj, name)[dict_key] = list()
+
+                getattr(spec_obj,name)[dict_key].append(tag_value)
             else:
                 setattr(spec_obj, name, attr_type(tag_value))
     return spec_obj
@@ -53,6 +66,8 @@ class Spec:
     """Represents a single spec file.
 
     """
+    def __init__(self):
+        self.last_packages = "Default"
 
     @staticmethod
     def from_file(filename):
@@ -86,7 +101,7 @@ def replace_macros(string, spec=None):
         if spec:
             value = getattr(spec, attr_name, None)
             if value:
-                return value
+                return str(value)
         return match.string[match.start():match.end()]
 
     return re.sub(_macro_pattern, _macro_repl, string)
