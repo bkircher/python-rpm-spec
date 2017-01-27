@@ -93,3 +93,5 @@ ENV/
 
 # IDE
 .idea/
+
+*.tar.gz

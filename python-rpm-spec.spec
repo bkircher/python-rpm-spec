@@ -1,7 +1,7 @@
 %global srcname rpm-spec
 
 Name:           python3-%{srcname}
-Version:        0.2
+Version:        0.3
 Release:        1%{?dist}
 Summary:        Python module for parsing RPM spec files
 
@@ -37,5 +37,8 @@ py.test-3
 %{python3_sitelib}/*
 
 %changelog
+* Fri Jan 27 2017 Benjamin Kircher <benjamin.kircher@gmail.com>
+- New version
+
 * Thu Jan 26 2017 Benjamin Kircher <benjamin.kircher@gmail.com>
 - Initial spec
