@@ -147,7 +147,7 @@ class Spec:
         """
 
         spec = Spec()
-        with open(filename, 'r') as f:
+        with open(filename, 'r', encoding='utf-8') as f:
             parse_context = {
                 'current_subpackage': None
             }
