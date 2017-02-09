@@ -2,8 +2,8 @@ from distutils.core import setup
 
 setup(
     name='python-rpm-spec',
-    packages=['rpm'],
-    version='0.3',
+    packages=['pyrpm'],
+    version='0.4',
     description='Module for parsing RPM spec files.',
     author='Benjamin Kircher',
     author_email='benjamin.kircher@gmail.com',

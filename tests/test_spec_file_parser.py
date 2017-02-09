@@ -1,6 +1,6 @@
 import os.path
 
-from rpm.spec import Package, Spec, replace_macros
+from pyrpm.spec import Package, Spec, replace_macros
 
 CURRENT_DIR = os.path.dirname(os.path.realpath(__file__))
 

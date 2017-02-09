@@ -11,7 +11,7 @@ spec file.
 
 ## Examples
 ```python
-from rpm.spec import Spec, replace_macros
+from pyrpm.spec import Spec, replace_macros
 
 spec = Spec.from_file('llvm.spec')
 print(spec.version)  # 3.8.0
