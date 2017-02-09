@@ -9,4 +9,4 @@ install:
   - pip install pytest coverage pytest-cov
 
 script:
-  - py.test --cov=rpm.spec tests
+  - py.test --cov=pyrpm.spec tests
