@@ -29,7 +29,8 @@ _tags = {
     'patches': (list, re.compile(r'^Patch\d*:\s*(\S+)')),
     'build_requires': (list, re.compile(r'^BuildRequires:\s*(.+)')),
     'requires': (list, re.compile(r'^Requires:\s*(.+)')),
-    'packages': (list, re.compile(r'^%package\s+(\S+)'))
+    'packages': (list, re.compile(r'^%package\s+(\S+)')),
+    'define': (str, re.compile(r'^%define\s+(\S+)\s+(\S+)'))
 }
 
 _macro_pattern = re.compile(r'%\{(\S+?)\}')
@@ -40,7 +41,11 @@ def _parse(spec_obj, context, line):
         attr_type, regex = value
         match = re.search(regex, line)
         if match:
-            tag_value = match.group(1)
+
+            if name != "define":
+                tag_value = match.group(1)
+            else:
+                name, tag_value = match.groups()
 
             if name == 'name':
                 spec_obj.packages = []
