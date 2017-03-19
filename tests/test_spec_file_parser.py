@@ -89,6 +89,18 @@ class TestSpecFileParser:
             'Header files, libraries and development documentation for %{name}'
         assert packages['jrdb'].summary == 'A command line debugger client for %{name}'
 
+    def test_defines(self):
+        spec = Spec.from_file(os.path.join(CURRENT_DIR, 'attica-qt5.spec'))
+
+        # Check if they exist
+        for define in ("sonum", "_tar_path", "_libname", "rname"):
+            assert hasattr(spec, define)
+
+        # Check values
+        assert spec.sonum == "5"
+        assert spec.rname == "attica"
+        assert spec._libname == "KF5Attica"
+        assert spec._tar_path == "5.31"
 
 class TestReplaceMacro:
     def test_replace_macro_with_spec(self):
