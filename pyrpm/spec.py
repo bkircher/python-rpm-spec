@@ -33,7 +33,7 @@ _tags = {
     'define': (str, re.compile(r'^%define\s+(\S+)\s+(\S+)'))
 }
 
-_macro_pattern = re.compile(r'%\{(\S+?)\}')
+_macro_pattern = re.compile(r'%{(\S+?)\}')
 
 
 def _parse(spec_obj, context, line):
