@@ -131,6 +131,14 @@ class Spec:
 
     """
 
+    def __init__(self):
+        for name, value in _tags.items():
+            attr_type = value[0]
+            if attr_type is list:
+                setattr(self, name, attr_type())
+            else:
+                setattr(self, name, None)
+
     @property
     def packages_dict(self):
         """All packages in this RPM spec as a dictionary.

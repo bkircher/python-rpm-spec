@@ -102,6 +102,28 @@ class TestSpecFileParser:
         assert spec._libname == "KF5Attica"
         assert spec._tar_path == "5.31"
 
+
+class TestSpecClass:
+
+    def test_default_init(self):
+        spec = Spec()
+        assert spec.name is None
+        assert spec.version is None
+        assert spec.epoch is None
+        assert spec.release is None
+        assert spec.summary is None
+        assert spec.license is None
+        assert spec.group is None
+        assert spec.url is None
+        assert spec.buildroot is None
+        assert spec.buildarch is None
+        assert spec.sources == []
+        assert spec.patches == []
+        assert spec.build_requires == []
+        assert spec.requires == []
+        assert spec.packages == []
+
+
 class TestReplaceMacro:
     def test_replace_macro_with_spec(self):
         spec = Spec.from_file(os.path.join(CURRENT_DIR, 'llvm.spec'))
