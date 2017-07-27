@@ -143,3 +143,8 @@ class TestReplaceMacro:
         spec = Spec.from_file(os.path.join(CURRENT_DIR, 'perl-Array-Compare.spec'))
         result = replace_macros('%{epoch}', spec)
         assert isinstance(result, str)
+
+    def test_replace_macro_twice(self):
+        spec = Spec.from_file(os.path.join(CURRENT_DIR, 'jsrdbg.spec'))
+        assert 'https://github.com/swojtasiak/jsrdbg/archive/26f9f2b27c04b4aec9cd67baaf9a0a206bbbd5c7.tar.gz#/jsrdbg-26f9f2b27c04b4aec9cd67baaf9a0a206bbbd5c7.tar.gz' \
+                == replace_macros(spec.sources[0], spec)
