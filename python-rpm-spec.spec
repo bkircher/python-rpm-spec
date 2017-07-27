@@ -4,7 +4,7 @@
 %bcond_without tests
 
 Name:           python3-%{srcname}
-Version:        0.5
+Version:        0.6
 Release:        1%{?dist}
 Summary:        Python module for parsing RPM spec files
 
@@ -47,6 +47,9 @@ py.test-%{python3_version} -vv tests || :
 %{python3_sitelib}/*
 
 %changelog
+* Thu Jul 27 2017 Benjamin Kircher <benjamin.kircher@gmail.com> - 0.6-1
+- New version
+
 * Sat Mar 25 2017 Benjamin Kircher <benjamin.kircher@gmail.com> - 0.5-1
 - New version
 
