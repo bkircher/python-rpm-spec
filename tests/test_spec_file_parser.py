@@ -79,6 +79,17 @@ class TestSpecFileParser:
         assert isinstance(spec.packages_dict, dict)
         assert len(spec.packages_dict) == len(spec.packages)
 
+    def test_sources_dict_property(self):
+        spec = Spec.from_file(os.path.join(CURRENT_DIR, 'llvm.spec'))
+        assert len(spec.sources_dict) == len(spec.sources)
+        assert spec.sources_dict['Source0'] is spec.sources[0]
+        assert spec.sources_dict['Source100'] is spec.sources[1]
+
+    def test_patches_dict_property(self):
+        spec = Spec.from_file(os.path.join(CURRENT_DIR, 'llvm.spec'))
+        assert len(spec.patches_dict) == len(spec.patches)
+        assert spec.patches_dict['Patch0'] is spec.patches[0]
+
     def test_subpackage_tags(self):
         spec = Spec.from_file(os.path.join(CURRENT_DIR, 'jsrdbg.spec'))
 

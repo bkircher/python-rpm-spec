@@ -11,68 +11,151 @@ add support for the missing pieces.
 """
 
 import re
+from abc import (ABCMeta, abstractmethod)
 
 __all__ = ['Spec', 'replace_macros', 'Package']
 
-_tags = {
-    'name': (str, re.compile(r'^Name:\s*(\S+)')),
-    'version': (str, re.compile(r'^Version:\s*(\S+)')),
-    'epoch': (int, re.compile(r'^Epoch:\s*(\S+)')),
-    'release': (str, re.compile(r'^Release:\s*(\S+)')),
-    'summary': (str, re.compile(r'^Summary:\s*(.+)')),
-    'license': (str, re.compile(r'^License:\s*(.+)')),
-    'group': (str, re.compile(r'^Group:\s*(\S+)')),
-    'url': (str, re.compile(r'^URL:\s*(\S+)')),
-    'buildroot': (str, re.compile(r'^BuildRoot:\s*(\S+)')),
-    'buildarch': (str, re.compile(r'^BuildArch:\s*(\S+)')),
-    'sources': (list, re.compile(r'^Source\d*:\s*(\S+)')),
-    'patches': (list, re.compile(r'^Patch\d*:\s*(\S+)')),
-    'build_requires': (list, re.compile(r'^BuildRequires:\s*(.+)')),
-    'requires': (list, re.compile(r'^Requires:\s*(.+)')),
-    'packages': (list, re.compile(r'^%package\s+(\S+)')),
-    'define': (str, re.compile(r'^%define\s+(\S+)\s+(\S+)')),
-    'global': (str, re.compile(r'^%global\s+(\S+)\s+(\S+)'))
-}
+
+class _Tag(metaclass=ABCMeta):
+    def __init__(self, name, pattern_obj, attr_type):
+        self.name = name
+        self.pattern_obj = pattern_obj
+        self.attr_type = attr_type
+
+    def test(self, line):
+        return re.search(self.pattern_obj, line)
+
+    def update(self, spec_obj, context, match_obj, line):
+        """Update given spec object and parse context and return them again.
+
+        :param spec_obj: An instance of Spec class
+        :param context: The parse context
+        :param match_obj: The re.match object
+        :param line: The original line
+        :return: Given updated Spec instance and parse context dictionary.
+        """
+
+        assert spec_obj
+        assert context
+        assert match_obj
+        assert line
+
+        return self.update_impl(spec_obj, context, match_obj, line)
+
+    @abstractmethod
+    def update_impl(self, spec_obj, context, match_obj, line):
+        pass
+
+    @staticmethod
+    def current_target(spec_obj, context):
+        target_obj = spec_obj
+        if context['current_subpackage'] is not None:
+            target_obj = context['current_subpackage']
+        return target_obj
+
+
+class _NameValue(_Tag):
+    """Parse a simple name → value tag."""
+
+    def __init__(self, name, pattern_obj, attr_type=None):
+        super().__init__(name, pattern_obj, attr_type if attr_type else str)
+
+    def update_impl(self, spec_obj, context, match_obj, line):
+        target_obj = _Tag.current_target(spec_obj, context)
+        value = match_obj.group(1)
+
+        # Sub-packages
+        if self.name == 'name':
+            spec_obj.packages = []
+            spec_obj.packages.append(Package(value))
+
+        setattr(target_obj, self.name, self.attr_type(value))
+        return spec_obj, context
+
+
+class _MacroDef(_Tag):
+    """Parse global macro definitions."""
+
+    def __init__(self, name, pattern_obj):
+        super().__init__(name, pattern_obj, str)
+
+    def update_impl(self, spec_obj, context, match_obj, line):
+        name, value = match_obj.groups()
+        setattr(spec_obj, name, str(value))
+        return spec_obj, context
+
+
+class _List(_Tag):
+    """Parse a tag that expands to a list."""
+
+    def __init__(self, name, pattern_obj):
+        super().__init__(name, pattern_obj, list)
+
+    def update_impl(self, spec_obj, context, match_obj, line):
+        target_obj = _Tag.current_target(spec_obj, context)
+
+        if not hasattr(target_obj, self.name):
+            setattr(target_obj, self.name, list())
+
+        value = match_obj.group(1)
+        if self.name == 'packages':
+            if value == '-n':
+                subpackage_name = line.rsplit(' ', 1)[-1].rstrip()
+            else:
+                subpackage_name = '{}-{}'.format(spec_obj.name, value)
+            package = Package(subpackage_name)
+            context['current_subpackage'] = package
+            package.is_subpackage = True
+            spec_obj.packages.append(package)
+        else:
+            getattr(target_obj, self.name).append(value)
+
+        return spec_obj, context
+
+
+class _ListAndDict(_Tag):
+    """Parse a tag that expands to a list and to a dict."""
+
+    def __init__(self, name, pattern_obj):
+        super().__init__(name, pattern_obj, list)
+
+    def update_impl(self, spec_obj, context, match_obj, line):
+        source_name, value = match_obj.groups()
+        dictionary = getattr(spec_obj, '{}_dict'.format(self.name))
+        dictionary[source_name] = value
+        target_obj = _Tag.current_target(spec_obj, context)
+        getattr(target_obj, self.name).append(value)
+        return spec_obj, context
+
+
+_tags = [
+    _NameValue('name', re.compile(r'^Name:\s*(\S+)')),
+    _NameValue('version', re.compile(r'^Version:\s*(\S+)')),
+    _NameValue('epoch', re.compile(r'^Epoch:\s*(\S+)'), attr_type=int),
+    _NameValue('release', re.compile(r'^Release:\s*(\S+)')),
+    _NameValue('summary', re.compile(r'^Summary:\s*(.+)')),
+    _NameValue('license', re.compile(r'^License:\s*(.+)')),
+    _NameValue('group', re.compile(r'^Group:\s*(\S+)')),
+    _NameValue('url', re.compile(r'^URL:\s*(\S+)')),
+    _NameValue('buildroot', re.compile(r'^BuildRoot:\s*(\S+)')),
+    _NameValue('buildarch', re.compile(r'^BuildArch:\s*(\S+)')),
+    _ListAndDict('sources', re.compile(r'^(Source\d*):\s*(\S+)')),
+    _ListAndDict('patches', re.compile(r'^(Patch\d*):\s*(\S+)')),
+    _List('build_requires', re.compile(r'^BuildRequires:\s*(.+)')),
+    _List('requires', re.compile(r'^Requires:\s*(.+)')),
+    _List('packages', re.compile(r'^%package\s+(\S+)')),
+    _MacroDef('define', re.compile(r'^%define\s+(\S+)\s+(\S+)')),
+    _MacroDef('global', re.compile(r'^%global\s+(\S+)\s+(\S+)'))
+]
 
 _macro_pattern = re.compile(r'%{(\S+?)\}')
 
 
 def _parse(spec_obj, context, line):
-    for name, value in _tags.items():
-        attr_type, regex = value
-        match = re.search(regex, line)
+    for tag in _tags:
+        match = tag.test(line)
         if match:
-
-            if name == 'define' or name == 'global':
-                name, tag_value = match.groups()
-            else:
-                tag_value = match.group(1)
-
-            if name == 'name':
-                spec_obj.packages = []
-                spec_obj.packages.append(Package(tag_value))
-
-            target_obj = spec_obj
-            if context['current_subpackage'] is not None:
-                target_obj = context['current_subpackage']
-
-            if attr_type is list:
-                if not hasattr(target_obj, name):
-                    setattr(target_obj, name, list())
-
-                if name == 'packages':
-                    if tag_value == '-n':
-                        subpackage_name = line.rsplit(' ', 1)[-1].rstrip()
-                    else:
-                        subpackage_name = '{}-{}'.format(spec_obj.name, tag_value)
-                    package = Package(subpackage_name)
-                    context['current_subpackage'] = package
-                    package.is_subpackage = True
-                    spec_obj.packages.append(package)
-                else:
-                    getattr(target_obj, name).append(tag_value)
-            else:
-                setattr(target_obj, name, attr_type(tag_value))
+            return tag.update(spec_obj, context, match, line)
     return spec_obj, context
 
 
@@ -133,12 +216,14 @@ class Spec:
     """
 
     def __init__(self):
-        for name, value in _tags.items():
-            attr_type = value[0]
-            if attr_type is list:
-                setattr(self, name, attr_type())
+        for tag in _tags:
+            if tag.attr_type is list:
+                setattr(self, tag.name, tag.attr_type())
             else:
-                setattr(self, name, None)
+                setattr(self, tag.name, None)
+
+        self.sources_dict = dict()
+        self.patches_dict = dict()
 
     @property
     def packages_dict(self):
