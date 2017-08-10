@@ -9,6 +9,10 @@ controls how the RPM is built. This module allows you to parse spec files and
 gives you simple access to various bits of information that is contained in the
 spec file.
 
+## Features
+* No extra dependencies other than Python 3
+* Available on all platforms, parse spec files on Windows
+
 ## Examples
 ```python
 from pyrpm.spec import Spec, replace_macros
