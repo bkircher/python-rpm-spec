@@ -1,16 +1,16 @@
-%global srcname rpm-spec
+%global reponame python-rpm-spec
 
 # enable tests by default, disable with --without tests
 %bcond_without tests
 
-Name:           python3-%{srcname}
+Name:           python3-pyrpm
 Version:        0.7
-Release:        1%{?dist}
+Release:        2%{?dist}
 Summary:        Python module for parsing RPM spec files
 
 License:        MIT
 URL:            https://github.com/bkircher/python-rpm-spec
-Source0:        https://github.com/bkircher/python-%{srcname}/archive/%{version}.tar.gz#/python-%{srcname}-%{version}.tar.gz
+Source0:        https://github.com/bkircher/%{reponame}/archive/%{version}.tar.gz#/%{reponame}-%{version}.tar.gz
 
 BuildArch:      noarch
 BuildRequires:  python3-devel
@@ -19,7 +19,7 @@ BuildRequires:  python3-setuptools
 BuildRequires:  python3-pytest
 %endif
 
-%{?python_provide:%python_provide python3-%{srcname}}
+%{?python_provide:%python_provide %{name}}
 
 %description
 python-rpm-spec is a Python module for parsing RPM spec files. RPMs are build
@@ -28,7 +28,7 @@ RPM is built. This module allows you to parse spec files and gives you simple
 access to various bits of information that is contained in the spec file.
 
 %prep
-%autosetup -n python-%{srcname}-%{version}
+%autosetup -n %{reponame}-%{version}
 
 %build
 %py3_build
@@ -47,6 +47,9 @@ py.test-%{python3_version} -vv tests || :
 %{python3_sitelib}/*
 
 %changelog
+* Tue Sep 12 2017 Benjamin Kircher <benjamin.kircher@gmail.com> - 0.7-2
+- Make package adhere naming guidelines
+
 * Thu Aug 10 2017 Benjamin Kircher <benjamin.kircher@gmail.com> - 0.7-1
 - New version
 
