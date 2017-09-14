@@ -96,3 +96,4 @@ ENV/
 
 *.tar.gz
 .vscode
+*.src.rpm

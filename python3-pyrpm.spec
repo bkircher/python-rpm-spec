@@ -5,7 +5,9 @@
 
 Name:           python3-pyrpm
 Version:        0.7
-Release:        2%{?dist}
+Release:        3%{?dist}
+Provides:       python3-rpm-spec = 2:%{version}-%{release}
+Obsoletes:      python3-rpm-spec < 2:0.7-1
 Summary:        Python module for parsing RPM spec files
 
 License:        MIT
@@ -47,6 +49,9 @@ py.test-%{python3_version} -vv tests || :
 %{python3_sitelib}/*
 
 %changelog
+* Thu Sep 14 2017 Benjamin Kircher <benjamin.kircher@gmail.com> - 0.7-3
+- Amend missing Provides and Obsoletes
+
 * Tue Sep 12 2017 Benjamin Kircher <benjamin.kircher@gmail.com> - 0.7-2
 - Make package adhere naming guidelines
 
