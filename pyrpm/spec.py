@@ -107,6 +107,9 @@ class _List(_Tag):
             context['current_subpackage'] = package
             package.is_subpackage = True
             spec_obj.packages.append(package)
+        elif self.name in [ 'requires', 'build_requires' ]:
+            requirement = Requirement(value)
+            getattr(target_obj, self.name).append(requirement)
         else:
             getattr(target_obj, self.name).append(value)
 
@@ -157,6 +160,50 @@ def _parse(spec_obj, context, line):
         if match:
             return tag.update(spec_obj, context, match, line)
     return spec_obj, context
+
+class Requirement:
+    """Represents a single requirement or build requirement in an RPM spec file.
+
+    Each spec file contains one or more requirements or build requirements. 
+    For example, consider following spec file::
+
+        Name:           foo
+        Version:        0.1
+
+        %description
+        %{name} is the library that everyone needs.
+
+        %package devel
+        Summary: Header files, libraries and development documentation for %{name}
+        Group: Development/Libraries
+        Requires: %{name}%{?_isa} = %{version}-%{release}
+        BuildRequires: gstreamer%{?_isa} >= 0.1.0
+
+        %description devel
+        This package contains the header files, static libraries, and development
+        documentation for %{name}. If you like to develop programs using %{name}, you
+        will need to install %{name}-devel.
+
+    This spec file's requirements have a name and either a required or minimum
+    version.
+    """
+    expr = re.compile(r'(.*?)\s+([<>]=?|=)\s+(\S+)')
+
+    def __init__(self, name):
+        assert isinstance(name, str)
+        self.line = name
+        match = Requirement.expr.match(name)
+        if match:
+            self.name = match.group(1)
+            self.operator = match.group(2)
+            self.version = match.group(3)
+        else:
+            self.name = None
+            self.operator = None
+            self.version = None
+
+    def __repr__(self):
+        return self.line
 
 
 class Package:
