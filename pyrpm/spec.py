@@ -198,7 +198,7 @@ class Requirement:
             self.operator = match.group(2)
             self.version = match.group(3)
         else:
-            self.name = None
+            self.name = name
             self.operator = None
             self.version = None
 
