@@ -104,14 +104,14 @@ class TestSpecFileParser:
         spec = Spec.from_file(os.path.join(CURRENT_DIR, 'attica-qt5.spec'))
 
         # Check if they exist
-        for define in ("sonum", "_tar_path", "_libname", "rname"):
+        for define in ('sonum', '_tar_path', '_libname', 'rname'):
             assert hasattr(spec, define)
 
         # Check values
-        assert spec.sonum == "5"
-        assert spec.rname == "attica"
-        assert spec._libname == "KF5Attica"
-        assert spec._tar_path == "5.31"
+        assert spec.sonum == '5'
+        assert spec.rname == 'attica'
+        assert spec._libname == 'KF5Attica'
+        assert spec._tar_path == '5.31'
 
     def test_requirement_parsing(self):
         spec = Spec.from_file(os.path.join(CURRENT_DIR, 'attica-qt5.spec'))
