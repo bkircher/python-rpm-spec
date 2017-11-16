@@ -1,5 +1,11 @@
 # Changelog
 
+
+## 0.x (YYYY-MM-DD)
+
+New Features:
+* Enable parsing versions in `BuildRequires:` and `Requires:`
+
 ## 0.7 (2017-08-10)
 
 New Features:
