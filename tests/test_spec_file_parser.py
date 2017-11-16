@@ -113,6 +113,13 @@ class TestSpecFileParser:
         assert spec._libname == "KF5Attica"
         assert spec._tar_path == "5.31"
 
+    def test_requirement_parsing(self):
+        spec = Spec.from_file(os.path.join(CURRENT_DIR, 'attica-qt5.spec'))
+
+        assert spec.build_requires[0].name == 'cmake'
+        assert spec.build_requires[0].version == '3.0'
+        assert spec.build_requires[0].operator == '>='
+
 
 class TestSpecClass:
 

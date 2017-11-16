@@ -107,7 +107,7 @@ class _List(_Tag):
             context['current_subpackage'] = package
             package.is_subpackage = True
             spec_obj.packages.append(package)
-        elif self.name in [ 'requires', 'build_requires' ]:
+        elif self.name in ['requires', 'build_requires']:
             requirement = Requirement(value)
             getattr(target_obj, self.name).append(requirement)
         else:
@@ -160,6 +160,7 @@ def _parse(spec_obj, context, line):
         if match:
             return tag.update(spec_obj, context, match, line)
     return spec_obj, context
+
 
 class Requirement:
     """Represents a single requirement or build requirement in an RPM spec file.
