@@ -330,21 +330,37 @@ def replace_macros(string, spec=None):
     if spec:
         assert isinstance(spec, Spec)
 
-    def _is_conditional(macro: str):
-        return macro.startswith("?")
+    def _is_conditional(macro: str) -> bool:
+        return macro.startswith("?") or macro.startswith("!")
+
+    def _test_conditional(macro: str) -> bool:
+        if macro[0] == "?":
+            return True
+        if macro[0] == "!":
+            return False
+        raise Exception("Given string is not a conditional macro")
 
     def _macro_repl(match):
         macro_name = match.group(1)
         if _is_conditional(macro_name) and spec:
             parts = macro_name[1:].split(sep=":", maxsplit=1)
             assert len(parts) > 0
-            if hasattr(spec, parts[0]):
-                if len(parts) == 2:
-                    return parts[1]
+            if _test_conditional(macro_name):  # ?
+                if hasattr(spec, parts[0]):
+                    if len(parts) == 2:
+                        return parts[1]
+                    else:
+                        return getattr(spec, parts[0], None)
                 else:
-                    return getattr(spec, parts[0], None)
-            else:
-                return ""
+                    return ""
+            else:  # !
+                if not hasattr(spec, parts[0]):
+                    if len(parts) == 2:
+                        return parts[1]
+                    else:
+                        return getattr(spec, parts[0], None)
+                else:
+                    return ""
 
         if spec:
             value = getattr(spec, macro_name, None)

@@ -179,9 +179,18 @@ class TestReplaceMacro:
 Name:           git
 Version:        2.15.1
 %define rcrev   .rc0
-Source0:        https://www.kernel.org/pub/software/scm/git/%{?rcrev:testing/}%{name}-%{version}%{?rcrev}.tar.xz
         """)
 
         assert 'https://www.kernel.org/pub/software/scm/git/testing/git-2.15.1.rc0.tar.xz' \
                == replace_macros(
             'https://www.kernel.org/pub/software/scm/git/%{?rcrev:testing/}%{name}-%{version}%{?rcrev}.tar.xz', spec)
+
+    def test_replace_macro_with_leading_exclamation_point(self):
+        spec = Spec.from_string("""
+Name:           git
+Version:        2.15.1
+        """)
+
+        assert 'https://www.kernel.org/pub/software/scm/git/testing/git-2.15.1.tar.xz' \
+               == replace_macros(
+            'https://www.kernel.org/pub/software/scm/git/%{!stable:testing/}%{name}-%{version}.tar.xz', spec)
