@@ -308,19 +308,30 @@ def replace_macros(string, spec=None):
 
     For example: a string '%{name}-%{version}.tar.gz' will be transformed to 'foo-2.0.tar.gz'.
 
-    TODO: There is also `rpm --eval "%{macro}"` which could give us the expanded definition of a
-    macro. Useful for macros that are global, e.g. %{_build_arch}.
-
     :return A string where all macros in given input are substituted as good as possible.
 
     """
     if spec:
         assert isinstance(spec, Spec)
 
+    def _is_conditional(macro: str):
+        return macro.startswith("?")
+
     def _macro_repl(match):
-        attr_name = match.group(1)
+        macro_name = match.group(1)
+        if _is_conditional(macro_name) and spec:
+            parts = macro_name[1:].split(sep=":", maxsplit=1)
+            assert len(parts) > 0
+            if hasattr(spec, parts[0]):
+                if len(parts) == 2:
+                    return parts[1]
+                else:
+                    return getattr(spec, parts[0], None)
+            else:
+                return ""
+
         if spec:
-            value = getattr(spec, attr_name, None)
+            value = getattr(spec, macro_name, None)
             if value:
                 return str(value)
         return match.string[match.start():match.end()]

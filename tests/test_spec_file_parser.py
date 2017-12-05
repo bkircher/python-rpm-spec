@@ -97,7 +97,7 @@ class TestSpecFileParser:
         assert spec.summary == 'JavaScript Remote Debugger for SpiderMonkey'
         packages = spec.packages_dict
         assert packages['jsrdbg-devel'].summary == \
-            'Header files, libraries and development documentation for %{name}'
+               'Header files, libraries and development documentation for %{name}'
         assert packages['jrdb'].summary == 'A command line debugger client for %{name}'
 
     def test_defines(self):
@@ -165,4 +165,14 @@ class TestReplaceMacro:
     def test_replace_macro_twice(self):
         spec = Spec.from_file(os.path.join(CURRENT_DIR, 'jsrdbg.spec'))
         assert 'https://github.com/swojtasiak/jsrdbg/archive/26f9f2b27c04b4aec9cd67baaf9a0a206bbbd5c7.tar.gz#/jsrdbg-26f9f2b27c04b4aec9cd67baaf9a0a206bbbd5c7.tar.gz' \
-                == replace_macros(spec.sources[0], spec)
+               == replace_macros(spec.sources[0], spec)
+
+    def test_replace_macro_with_negative_conditional(self):
+        spec = Spec.from_file(os.path.join(CURRENT_DIR, 'git.spec'))
+
+        assert 'https://www.kernel.org/pub/software/scm/git/git-2.15.1.tar.xz' \
+               == replace_macros(
+            'https://www.kernel.org/pub/software/scm/git/%{?rcrev:testing/}%{name}-%{version}%{?rcrev}.tar.xz', spec)
+
+    def test_replace_macro_with_negative_conditional(self):
+        pass
