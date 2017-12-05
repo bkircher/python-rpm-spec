@@ -251,6 +251,10 @@ class Package:
     def __init__(self, name):
         assert isinstance(name, str)
 
+        for tag in _tags:
+            if tag.attr_type is list:
+                setattr(self, tag.name, tag.attr_type())
+
         self.name = name
         self.is_subpackage = False
 
