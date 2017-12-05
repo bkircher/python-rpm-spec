@@ -302,6 +302,22 @@ class Spec:
                 spec, parse_context = _parse(spec, parse_context, line)
         return spec
 
+    @staticmethod
+    def from_string(string: str):
+        """Creates a new Spec object from a given string.
+
+        :param string: The contents of a spec file.
+        :return: A new Spec object.
+        """
+
+        spec = Spec()
+        parse_context = {
+            'current_subpackage': None
+        }
+        for line in string.splitlines():
+            spec, parse_context = _parse(spec, parse_context, line)
+        return spec
+
 
 def replace_macros(string, spec=None):
     """Replace all macros in given string with corresponding values.
