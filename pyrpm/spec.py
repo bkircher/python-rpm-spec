@@ -252,7 +252,8 @@ class Package:
         assert isinstance(name, str)
 
         for tag in _tags:
-            if tag.attr_type is list:
+            if tag.attr_type is list and tag.name in ["build_requires", "requires", "conflicts", "obsoletes",
+                                                      "provides"]:
                 setattr(self, tag.name, tag.attr_type())
 
         self.name = name
