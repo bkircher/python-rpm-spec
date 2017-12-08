@@ -4,6 +4,9 @@ from pyrpm.spec import Package, Spec, replace_macros
 
 CURRENT_DIR = os.path.dirname(os.path.realpath(__file__))
 
+__attrs__ = ['name', 'summary', 'group', 'buildarch']
+__collections__ = ['sources', 'patches', 'build_requires', 'requires', 'packages']
+
 
 class TestPackageClass:
     def test_repr_string(self):
@@ -14,6 +17,15 @@ class TestPackageClass:
     def test_is_subpackage(self):
         package = Package('foo')
         assert package.is_subpackage is False
+
+    def test_is_collection(self):
+        spec = Spec.from_file(os.path.join(CURRENT_DIR, 'git.spec'))
+        assert iter(spec.packages)
+
+    def test_has_collections(self):
+        spec = Spec.from_file(os.path.join(CURRENT_DIR, 'git.spec'))
+        for collection in __collections__:
+            assert iter(getattr(spec.packages[0], collection))
 
 
 class TestSpecFileParser:
@@ -156,6 +168,16 @@ class TestSpecClass:
         assert spec.build_requires == []
         assert spec.requires == []
         assert spec.packages == []
+
+    def test_has_attrs(self):
+        spec = Spec.from_file(os.path.join(CURRENT_DIR, 'git.spec'))
+        for attr in __attrs__:
+            assert hasattr(spec, attr)
+
+    def test_has_collections(self):
+        spec = Spec.from_file(os.path.join(CURRENT_DIR, 'git.spec'))
+        for collection in __collections__:
+            assert iter(getattr(spec, collection))
 
 
 class TestReplaceMacro:
