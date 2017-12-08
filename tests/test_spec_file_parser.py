@@ -120,6 +120,22 @@ class TestSpecFileParser:
         assert spec.build_requires[0].version == '3.0'
         assert spec.build_requires[0].operator == '>='
 
+    def test_subpackage_has_requires(self):
+        spec = Spec.from_file(os.path.join(CURRENT_DIR, 'git.spec'))
+
+        core_package = spec.packages_dict['git-core']
+        assert len(core_package.requires) == 3
+
+    def test_subpackage_has_build_requires(self):
+        """Make sure that Requires:, BuildRequires:, and so on exist on
+        sub-packages even though they might be empty.
+
+        """
+        spec = Spec.from_file(os.path.join(CURRENT_DIR, 'git.spec'))
+
+        core_package = spec.packages_dict['git-core']
+        assert len(core_package.build_requires) == 0
+
 
 class TestSpecClass:
 
