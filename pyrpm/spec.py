@@ -328,6 +328,10 @@ def replace_macros(string, spec=None):
 
     For example: a string '%{name}-%{version}.tar.gz' will be transformed to 'foo-2.0.tar.gz'.
 
+    :param string A string containing macros that you want to be replaced
+    :param spec An optional spec file. If given, definitions in that spec
+    file will be used to replace macros.
+
     :return A string where all macros in given input are substituted as good as possible.
 
     """
