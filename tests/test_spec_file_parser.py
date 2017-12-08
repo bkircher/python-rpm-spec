@@ -183,6 +183,15 @@ class TestReplaceMacro:
         assert 'https://github.com/swojtasiak/jsrdbg/archive/26f9f2b27c04b4aec9cd67baaf9a0a206bbbd5c7.tar.gz#/jsrdbg-26f9f2b27c04b4aec9cd67baaf9a0a206bbbd5c7.tar.gz' \
                == replace_macros(spec.sources[0], spec)
 
+    def test_replace_user_defined_macro(self):
+        spec = Spec.from_string("""
+Name:           foo
+Version:        2
+%define var   bar
+""")
+        s = '%{name}/%{version}/%{var}'
+        assert 'foo/2/bar' == replace_macros(s, spec)
+
     def test_replace_macro_with_negative_conditional(self):
         spec = Spec.from_file(os.path.join(CURRENT_DIR, 'git.spec'))
 
