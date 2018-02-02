@@ -4,6 +4,16 @@
 
 python-rpm-spec is a Python module for parsing RPM spec files.
 
+tl;dr
+If you want to quickly parse a spec file on the command line you might want to
+give `rpmspec --parse` a try.
+```sh
+$ rpmspec --parse file.spec |awk '/Source/ {print $2}'
+```
+
+If you write Python, have no `/usr/bin/rpm` around, or want to do something
+slightly more complicated, try using this Python module.
+
 RPMs are build from a package's sources along with a spec file. The spec file
 controls how the RPM is built. This module allows you to parse spec files and
 gives you simple access to various bits of information that is contained in the
