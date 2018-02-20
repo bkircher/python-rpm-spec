@@ -146,6 +146,7 @@ _tags = [
     _ListAndDict('patches', re.compile(r'^(Patch\d*):\s*(\S+)')),
     _List('build_requires', re.compile(r'^BuildRequires:\s*(.+)')),
     _List('requires', re.compile(r'^Requires:\s*(.+)')),
+    _List('provides', re.compile(r'^Provides:\s*(.+)')),
     _List('packages', re.compile(r'^%package\s+(\S+)')),
     _MacroDef('define', re.compile(r'^%define\s+(\S+)\s+(\S+)')),
     _MacroDef('global', re.compile(r'^%global\s+(\S+)\s+(\S+)'))
