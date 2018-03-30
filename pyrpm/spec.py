@@ -10,7 +10,7 @@ add support for the missing pieces.
 
 """
 
-import re
+import re, os
 from abc import (ABCMeta, abstractmethod)
 
 __all__ = ['Spec', 'replace_macros', 'Package']
@@ -146,8 +146,10 @@ _tags = [
     _ListAndDict('patches', re.compile(r'^(Patch\d*):\s*(\S+)')),
     _List('build_requires', re.compile(r'^BuildRequires:\s*(.+)')),
     _List('requires', re.compile(r'^Requires:\s*(.+)')),
+    _List('requires_post', re.compile(r'^Requires\(post\):\s*(.+)')),
     _List('provides', re.compile(r'^Provides:\s*(.+)')),
     _List('packages', re.compile(r'^%package\s+(\S+)')),
+    _List('files', re.compile(r'%attr\(.*\)\s+(\S+)')),
     _MacroDef('define', re.compile(r'^%define\s+(\S+)\s+(\S+)')),
     _MacroDef('global', re.compile(r'^%global\s+(\S+)\s+(\S+)'))
 ]
@@ -298,21 +300,15 @@ class Spec:
         :param filename: The path to the spec file.
         :return: A new Spec object.
         """
-
-        spec = Spec()
-        with open(filename, 'r', encoding='utf-8') as f:
-            parse_context = {
-                'current_subpackage': None
-            }
-            for line in f:
-                spec, parse_context = _parse(spec, parse_context, line)
-        return spec
+        str = open(filename, 'r', encoding='utf-8').read()
+        return Spec.from_string(str, os.path.dirname(os.path.abspath(filename)))
 
     @staticmethod
-    def from_string(string: str):
+    def from_string(string: str, relpath: str):
         """Creates a new Spec object from a given string.
 
         :param string: The contents of a spec file.
+        :param relpath: The relative path to use for expanding include directives
         :return: A new Spec object.
         """
 
@@ -320,10 +316,44 @@ class Spec:
         parse_context = {
             'current_subpackage': None
         }
-        for line in string.splitlines():
+
+        # first pass: expand the "%include" lines:
+        content_lines = Spec.__resolve_includes(string.splitlines(), relpath)
+        
+        # second pass: parse the SPEC file:
+        for line in content_lines:
             spec, parse_context = _parse(spec, parse_context, line)
         return spec
 
+    @staticmethod
+    def __resolve_includes(content_lines, relpath):
+        include_pattern = re.compile(r'^%include\s+(\S+)')
+        while True:
+            restart_processing = False
+            
+            for nline in range(0,len(content_lines)):
+                line = content_lines[nline]
+                #print("Processing line", line)
+                match = include_pattern.match(line)
+                if match:
+                    filename = match.group(1)
+                    
+                    #print("  *** At line {} found inclusion of file: {} in range {}-{}".format(nline, filename, match.start(), match.end()))
+                    included_content = open(os.path.join(relpath,filename), 'r', encoding='utf-8').read()
+                    
+                    # remove the current line and replace it with included content:
+                    del content_lines[nline]
+                    content_lines[nline:nline] = included_content.splitlines()
+                    restart_processing = True
+                    break
+
+                if restart_processing:
+                    break
+                nline = nline+1
+                    
+            if not restart_processing:
+                break       # no need of another pass
+        return content_lines
 
 def replace_macros(string, spec=None):
     """Replace all macros in given string with corresponding values.

@@ -136,6 +136,14 @@ class TestSpecFileParser:
         core_package = spec.packages_dict['git-core']
         assert len(core_package.build_requires) == 0
 
+    def test_include_tag(self):
+        """Make sure that %include is hanlded correctly
+
+        """
+        spec = Spec.from_file(os.path.join(CURRENT_DIR, 'include-test.spec'))
+
+        core_package = spec.packages_dict['pkgA']
+        assert len(core_package.build_requires) == 0
 
 class TestSpecClass:
 
@@ -188,7 +196,7 @@ class TestReplaceMacro:
 Name:           foo
 Version:        2
 %define var   bar
-""")
+""", "")
         s = '%{name}/%{version}/%{var}'
         assert 'foo/2/bar' == replace_macros(s, spec)
 
@@ -204,7 +212,7 @@ Version:        2
 Name:           git
 Version:        2.15.1
 %define rcrev   .rc0
-        """)
+        """, "")
 
         assert 'https://www.kernel.org/pub/software/scm/git/testing/git-2.15.1.rc0.tar.xz' \
                == replace_macros(
@@ -214,7 +222,7 @@ Version:        2.15.1
         spec = Spec.from_string("""
 Name:           git
 Version:        2.15.1
-        """)
+        """, "")
 
         assert 'https://www.kernel.org/pub/software/scm/git/testing/git-2.15.1.tar.xz' \
                == replace_macros(
