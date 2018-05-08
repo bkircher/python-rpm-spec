@@ -1,4 +1,0 @@
-Perl-Git sub-ackage as packages [] list. This is wrong. Sub-packages should not
-have a package list. Who is adding that? Amend a5ce036 or 1aa1b5a.
-
-Perl-Git package has a BuildRequires: line with a comma.
