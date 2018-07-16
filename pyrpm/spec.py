@@ -404,4 +404,12 @@ def replace_macros(string, spec=None):
                 return str(value)
         return match.string[match.start():match.end()]
 
-    return re.sub(_macro_pattern, _macro_repl, string)
+    # Recursively expand macros
+    # Note: If macros are not defined in the spec file, this won't try to
+    # expand them.
+    while True:
+        ret = re.sub(_macro_pattern, _macro_repl, string)
+        if ret != string:
+            string = ret
+            continue
+        return ret
