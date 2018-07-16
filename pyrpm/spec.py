@@ -107,9 +107,33 @@ class _List(_Tag):
             context['current_subpackage'] = package
             package.is_subpackage = True
             spec_obj.packages.append(package)
-        elif self.name in ['requires', 'build_requires']:
-            requirement = Requirement(value)
-            getattr(target_obj, self.name).append(requirement)
+        elif self.name in ['build_requires', 'requires', 'conflicts', 'obsoletes', 'provides']:
+            # Macros are valid in requirements
+            value = replace_macros(value, spec=spec_obj)
+
+            # It's also legal to do:
+            #   Requires: a b c
+            #   Requires: b >= 3.1
+            #   Requires: a, b >= 3.1, c
+
+            # 1. Tokenize
+            tokens = [val for val in re.split('[\t\n, ]', value) if val != '']
+            values = []
+
+            # 2. Join
+            add = False
+            for val in tokens:
+                if add:
+                    add = False
+                    val = values.pop() + ' ' + val
+                elif val in ['>=', '!=', '>', '<', '<=', '==', '=']:
+                    add = True  # Add next value to this one
+                    val = values.pop() + ' ' + val
+                values.append(val)
+
+            for val in values:
+                requirement = Requirement(val)
+                getattr(target_obj, self.name).append(requirement)
         else:
             getattr(target_obj, self.name).append(value)
 
@@ -146,6 +170,8 @@ _tags = [
     _ListAndDict('patches', re.compile(r'^(Patch\d*):\s*(\S+)')),
     _List('build_requires', re.compile(r'^BuildRequires:\s*(.+)')),
     _List('requires', re.compile(r'^Requires:\s*(.+)')),
+    _List('conflicts', re.compile(r'^Conflicts:\s*(.+)')),
+    _List('obsoletes', re.compile(r'^Obsoletes:\s*(.+)')),
     _List('provides', re.compile(r'^Provides:\s*(.+)')),
     _List('packages', re.compile(r'^%package\s+(\S+)')),
     _MacroDef('define', re.compile(r'^%define\s+(\S+)\s+(\S+)')),
