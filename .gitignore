@@ -97,3 +97,4 @@ ENV/
 *.tar.gz
 .vscode
 *.src.rpm
+.pytest_cache/
