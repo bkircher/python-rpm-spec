@@ -158,7 +158,7 @@ class _ListAndDict(_Tag):
 _tags = [
     _NameValue('name', re.compile(r'^Name:\s*(\S+)')),
     _NameValue('version', re.compile(r'^Version:\s*(\S+)')),
-    _NameValue('epoch', re.compile(r'^Epoch:\s*(\S+)'), attr_type=int),
+    _NameValue('epoch', re.compile(r'^Epoch:\s*(\S+)')),
     _NameValue('release', re.compile(r'^Release:\s*(\S+)')),
     _NameValue('summary', re.compile(r'^Summary:\s*(.+)')),
     _NameValue('license', re.compile(r'^License:\s*(.+)')),
