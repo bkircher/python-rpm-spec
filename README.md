@@ -87,7 +87,8 @@ for br in spec.build_requires:
 
 ## Install
 
-python-rpm-spec is hosted on PyPI - the Python Package Index. So all you need to do is
+python-rpm-spec is [hosted](https://pypi.org/project/python-rpm-spec/) on PyPI -
+the Python Package Index. So all you need to do is
 
 ```bash
 $ pip install python-rpm-spec

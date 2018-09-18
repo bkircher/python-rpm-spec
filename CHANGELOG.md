@@ -1,5 +1,7 @@
 # Changelog
 
+## 0.x (YYYY-MM-DD)
+
 ## 0.8 (2018-09-18)
 
 New Features:
