@@ -23,7 +23,7 @@ class TestSpecFileParser:
 
         assert 'perl-Array-Compare' == spec.name
         assert 'Perl extension for comparing arrays' == spec.summary
-        assert 1 == spec.epoch
+        assert '1' == spec.epoch
 
         assert '1.16' == spec.version
         assert 'noarch' == spec.buildarch
