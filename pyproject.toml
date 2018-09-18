@@ -1,0 +1,11 @@
+[build-system]
+requires = ["flit"]
+build-backend = "flit.buildapi"
+
+[tool.flit.metadata]
+module = "pyrpm"
+author = "Benjamin Kircher"
+author-email = "benjamin.kircher@gmail.com"
+home-page = "https://github.com/bkircher/python-rpm-spec"
+requires-python = "3"
+description-file = "README.md"
