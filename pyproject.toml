@@ -3,9 +3,10 @@ requires = ["flit"]
 build-backend = "flit.buildapi"
 
 [tool.flit.metadata]
+dist-name = "python-rpm-spec"
 module = "pyrpm"
 author = "Benjamin Kircher"
 author-email = "benjamin.kircher@gmail.com"
 home-page = "https://github.com/bkircher/python-rpm-spec"
-requires-python = "3"
+requires-python = ">=3.3"
 description-file = "README.md"
