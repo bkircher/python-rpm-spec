@@ -7,6 +7,7 @@ python-rpm-spec is a Python library for parsing RPM spec files.
 tl;dr
 If you want to quickly parse a spec file on the command line you might want to
 give `rpmspec --parse` a try.
+
 ```sh
 $ rpmspec --parse file.spec | awk '/Source/ {print $2}'
 ```
@@ -20,11 +21,14 @@ gives you simple access to various bits of information that is contained in the
 spec file.
 
 ## Features
+
 * No extra dependencies other than Python 3
 * Available on all platforms, parse spec files on Windows
 
 ## Examples
+
 This is how you access a spec file's various definitions:
+
 ```python
 from pyrpm.spec import Spec, replace_macros
 
@@ -45,6 +49,7 @@ for package in spec.packages:
 ```
 
 Example showing how to retrieve named source or patch files from a spec:
+
 ```python
 from pyrpm.spec import Spec
 
@@ -67,6 +72,7 @@ for source in spec.sources:
 
 Example showing how to get versioned `BuildRequires:` and `Requires:` out of a
 spec file:
+
 ```python
 from pyrpm.spec import Spec
 
@@ -90,7 +96,7 @@ for br in spec.build_requires:
 python-rpm-spec is [hosted](https://pypi.org/project/python-rpm-spec/) on PyPI -
 the Python Package Index. So all you need to do is
 
-```bash
+```sh
 $ pip install python-rpm-spec
 ```
 
@@ -100,23 +106,26 @@ Alternatively, if you run Fedora, you can enable a copr repository and use the
 package manager to install a python-rpm-spec as a normal package in your
 system.
 
-```bash
+```sh
 $ sudo dnf copr enable bkircher/python-rpm-spec  # Enable copr repo
 $ sudo dnf install -y python3-rpm-spec  # Install the package
 ```
 
 ## Dependencies
+
 Except Python 3 no extra dependencies are required. No Python 2, sorry.
 
 ## Current status
+
 This module does not parse everything of a spec file. Only the pieces I needed.
 So there is probably still plenty of stuff missing. However, it should not be
 terribly complicated to add support for the missing pieces.
 
 ## Development
+
 If you want to hack on this module you could start with following recipe:
 
-```bash
+```sh
 $ git clone https://github.com/bkircher/python-rpm-spec.git  # Clone the repo
 $ cd python-rpm-spec  # Change into the source directory
 $ mkdir .venv && python3 -m venv .venv  # Create a virtual environment
@@ -124,7 +133,9 @@ $ source .venv/bin/activate  # Activate it
 $ pip install pytest  # Install py.test
 $ pytest  # Execute all tests
 ```
-Happy hacking!
 
-<!-- vim: et sw=4 ts=4:
--->
+## Further references
+
+Take a look at the excellent [RPM Packaging Guide](https://rpm-guide.readthedocs.io/en/latest/index.html), especially the section [What is a SPEC File?](https://rpm-guide.readthedocs.io/en/latest/rpm-guide.html#what-is-a-spec-file)
+
+Happy hacking!
