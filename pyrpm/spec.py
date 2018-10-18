@@ -192,7 +192,7 @@ def _parse(spec_obj, context, line):
 class Requirement:
     """Represents a single requirement or build requirement in an RPM spec file.
 
-    Each spec file contains one or more requirements or build requirements. 
+    Each spec file contains one or more requirements or build requirements.
     For example, consider following spec file::
 
         Name:           foo
@@ -279,8 +279,9 @@ class Package:
         assert isinstance(name, str)
 
         for tag in _tags:
-            if tag.attr_type is list and tag.name in ["build_requires", "requires", "conflicts", "obsoletes",
-                                                      "provides"]:
+            if tag.attr_type is list and tag.name in ["build_requires",
+                                                      "requires", "conflicts",
+                                                      "obsoletes", "provides"]:
                 setattr(self, tag.name, tag.attr_type())
 
         self.name = name
@@ -380,7 +381,7 @@ def replace_macros(string, spec=None):
         macro_name = match.group(1)
         if _is_conditional(macro_name) and spec:
             parts = macro_name[1:].split(sep=":", maxsplit=1)
-            assert len(parts) > 0
+            assert parts
             if _test_conditional(macro_name):  # ?
                 if hasattr(spec, parts[0]):
                     if len(parts) == 2:
