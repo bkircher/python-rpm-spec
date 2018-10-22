@@ -21,30 +21,30 @@ class TestSpecFileParser:
         spec = Spec.from_file(os.path.join(CURRENT_DIR, "perl-Array-Compare.spec"))
         assert isinstance(spec, Spec)
 
-        assert "perl-Array-Compare" == spec.name
-        assert "Perl extension for comparing arrays" == spec.summary
-        assert "1" == spec.epoch
+        assert spec.name == "perl-Array-Compare"
+        assert spec.summary == "Perl extension for comparing arrays"
+        assert spec.epoch == "1"
 
-        assert "1.16" == spec.version
-        assert "noarch" == spec.buildarch
-        assert 2 == len(spec.build_requires)
-        assert "perl >= 1:5.6.0" == spec.build_requires[0].line
+        assert spec.version == "1.16"
+        assert spec.buildarch == "noarch"
+        assert len(spec.build_requires) == 2
+        assert spec.build_requires[0].line == "perl >= 1:5.6.0"
 
     def test_parse_llvm_spec(self):
         spec = Spec.from_file(os.path.join(CURRENT_DIR, "llvm.spec"))
 
-        assert "llvm" == spec.name
-        assert "3.8.0" == spec.version
+        assert spec.name == "llvm"
+        assert spec.version == "3.8.0"
 
-        assert 2 == len(spec.sources)
+        assert len(spec.sources) == 2
         assert (
-            "http://llvm.org/releases/%{version}/%{name}-%{version}.src.tar.xz"
-            == spec.sources[0]
+            spec.sources[0]
+            == "http://llvm.org/releases/%{version}/%{name}-%{version}.src.tar.xz"
         )
-        assert "llvm-config.h" == spec.sources[1]
+        assert spec.sources[1] == "llvm-config.h"
 
-        assert 1 == len(spec.patches)
-        assert "llvm-3.7.1-cmake-s390.patch" == spec.patches[0]
+        assert len(spec.patches) == 1
+        assert spec.patches[0] == "llvm-3.7.1-cmake-s390.patch"
 
     def test_parse_only_base_package(self):
         # spec file does not contain %package directive
@@ -138,7 +138,7 @@ class TestSpecFileParser:
         spec = Spec.from_file(os.path.join(CURRENT_DIR, "git.spec"))
 
         core_package = spec.packages_dict["git-core"]
-        assert len(core_package.build_requires) == 0
+        assert not core_package.build_requires
 
 
 class TestSpecClass:
@@ -164,10 +164,11 @@ class TestSpecClass:
 class TestReplaceMacro:
     def test_replace_macro_with_spec(self):
         spec = Spec.from_file(os.path.join(CURRENT_DIR, "llvm.spec"))
-        assert "http://llvm.org/releases/3.8.0/llvm-3.8.0.src.tar.xz" == replace_macros(
-            spec.sources[0], spec
+        assert (
+            replace_macros(spec.sources[0], spec)
+            == "http://llvm.org/releases/3.8.0/llvm-3.8.0.src.tar.xz"
         )
-        assert "llvm-config.h" == replace_macros(spec.sources[1], spec)
+        assert replace_macros(spec.sources[1], spec) == "llvm-config.h"
 
     def test_replace_without_spec(self):
         s = "http://llvm.org/releases/%{version}/%{name}-%{version}.src.tar.xz"
@@ -185,8 +186,8 @@ class TestReplaceMacro:
     def test_replace_macro_twice(self):
         spec = Spec.from_file(os.path.join(CURRENT_DIR, "jsrdbg.spec"))
         assert (
-            "https://github.com/swojtasiak/jsrdbg/archive/26f9f2b27c04b4aec9cd67baaf9a0a206bbbd5c7.tar.gz#/jsrdbg-26f9f2b27c04b4aec9cd67baaf9a0a206bbbd5c7.tar.gz"
-            == replace_macros(spec.sources[0], spec)
+            replace_macros(spec.sources[0], spec)
+            == "https://github.com/swojtasiak/jsrdbg/archive/26f9f2b27c04b4aec9cd67baaf9a0a206bbbd5c7.tar.gz#/jsrdbg-26f9f2b27c04b4aec9cd67baaf9a0a206bbbd5c7.tar.gz"
         )
 
     def test_replace_user_defined_macro(self):
@@ -198,17 +199,17 @@ Version:        2
 """
         )
         s = "%{name}/%{version}/%{var}"
-        assert "foo/2/bar" == replace_macros(s, spec)
+        assert replace_macros(s, spec) == "foo/2/bar"
 
     def test_replace_macro_with_negative_conditional(self):
         spec = Spec.from_file(os.path.join(CURRENT_DIR, "git.spec"))
 
         assert (
-            "https://www.kernel.org/pub/software/scm/git/git-2.15.1.tar.xz"
-            == replace_macros(
+            replace_macros(
                 "https://www.kernel.org/pub/software/scm/git/%{?rcrev:testing/}%{name}-%{version}%{?rcrev}.tar.xz",
                 spec,
             )
+            == "https://www.kernel.org/pub/software/scm/git/git-2.15.1.tar.xz"
         )
 
     def test_replace_macro_with_positive_conditional(self):
@@ -221,11 +222,11 @@ Version:        2.15.1
         )
 
         assert (
-            "https://www.kernel.org/pub/software/scm/git/testing/git-2.15.1.rc0.tar.xz"
-            == replace_macros(
+            replace_macros(
                 "https://www.kernel.org/pub/software/scm/git/%{?rcrev:testing/}%{name}-%{version}%{?rcrev}.tar.xz",
                 spec,
             )
+            == "https://www.kernel.org/pub/software/scm/git/testing/git-2.15.1.rc0.tar.xz"
         )
 
     def test_replace_macro_with_leading_exclamation_point(self):
@@ -237,10 +238,9 @@ Version:        2.15.1
         )
 
         assert (
-            "https://www.kernel.org/pub/software/scm/git/testing/git-2.15.1.tar.xz"
-            == replace_macros(
+            replace_macros(
                 "https://www.kernel.org/pub/software/scm/git/%{!stable:testing/}%{name}-%{version}.tar.xz",
                 spec,
             )
+            == "https://www.kernel.org/pub/software/scm/git/testing/git-2.15.1.tar.xz"
         )
-

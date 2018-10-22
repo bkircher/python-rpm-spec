@@ -393,18 +393,18 @@ def replace_macros(string, spec=None):
                 if hasattr(spec, parts[0]):
                     if len(parts) == 2:
                         return parts[1]
-                    else:
-                        return getattr(spec, parts[0], None)
-                else:
-                    return ""
+
+                    return getattr(spec, parts[0], None)
+
+                return ""
             else:  # !
                 if not hasattr(spec, parts[0]):
                     if len(parts) == 2:
                         return parts[1]
-                    else:
-                        return getattr(spec, parts[0], None)
-                else:
-                    return ""
+
+                    return getattr(spec, parts[0], None)
+
+                return ""
 
         if spec:
             value = getattr(spec, macro_name, None)
