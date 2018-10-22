@@ -1,9 +1,9 @@
-name: python-rpm-spec
+name: pyrpm
 dependencies:
   - python>=3.7.0
   - pip:
-    - autopep8==1.4
-    - flit>=1.1
-    - pylint==2.1.1
-    - pytest==3.8.0
-    - rope==0.11.0
+    - black
+    - flit
+    - pylint
+    - pytest
+    - rope

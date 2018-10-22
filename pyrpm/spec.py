@@ -11,9 +11,9 @@ add support for the missing pieces.
 """
 
 import re
-from abc import (ABCMeta, abstractmethod)
+from abc import ABCMeta, abstractmethod
 
-__all__ = ['Spec', 'replace_macros', 'Package']
+__all__ = ["Spec", "replace_macros", "Package"]
 
 
 class _Tag(metaclass=ABCMeta):
@@ -49,8 +49,8 @@ class _Tag(metaclass=ABCMeta):
     @staticmethod
     def current_target(spec_obj, context):
         target_obj = spec_obj
-        if context['current_subpackage'] is not None:
-            target_obj = context['current_subpackage']
+        if context["current_subpackage"] is not None:
+            target_obj = context["current_subpackage"]
         return target_obj
 
 
@@ -65,7 +65,7 @@ class _NameValue(_Tag):
         value = match_obj.group(1)
 
         # Sub-packages
-        if self.name == 'name':
+        if self.name == "name":
             spec_obj.packages = []
             spec_obj.packages.append(Package(value))
 
@@ -98,16 +98,22 @@ class _List(_Tag):
             setattr(target_obj, self.name, list())
 
         value = match_obj.group(1)
-        if self.name == 'packages':
-            if value == '-n':
-                subpackage_name = line.rsplit(' ', 1)[-1].rstrip()
+        if self.name == "packages":
+            if value == "-n":
+                subpackage_name = line.rsplit(" ", 1)[-1].rstrip()
             else:
-                subpackage_name = '{}-{}'.format(spec_obj.name, value)
+                subpackage_name = "{}-{}".format(spec_obj.name, value)
             package = Package(subpackage_name)
-            context['current_subpackage'] = package
+            context["current_subpackage"] = package
             package.is_subpackage = True
             spec_obj.packages.append(package)
-        elif self.name in ['build_requires', 'requires', 'conflicts', 'obsoletes', 'provides']:
+        elif self.name in [
+            "build_requires",
+            "requires",
+            "conflicts",
+            "obsoletes",
+            "provides",
+        ]:
             # Macros are valid in requirements
             value = replace_macros(value, spec=spec_obj)
 
@@ -117,7 +123,7 @@ class _List(_Tag):
             #   Requires: a, b >= 3.1, c
 
             # 1. Tokenize
-            tokens = [val for val in re.split('[\t\n, ]', value) if val != '']
+            tokens = [val for val in re.split("[\t\n, ]", value) if val != ""]
             values = []
 
             # 2. Join
@@ -125,10 +131,10 @@ class _List(_Tag):
             for val in tokens:
                 if add:
                     add = False
-                    val = values.pop() + ' ' + val
-                elif val in ['>=', '!=', '>', '<', '<=', '==', '=']:
+                    val = values.pop() + " " + val
+                elif val in [">=", "!=", ">", "<", "<=", "==", "="]:
                     add = True  # Add next value to this one
-                    val = values.pop() + ' ' + val
+                    val = values.pop() + " " + val
                 values.append(val)
 
             for val in values:
@@ -148,7 +154,7 @@ class _ListAndDict(_Tag):
 
     def update_impl(self, spec_obj, context, match_obj, line):
         source_name, value = match_obj.groups()
-        dictionary = getattr(spec_obj, '{}_dict'.format(self.name))
+        dictionary = getattr(spec_obj, "{}_dict".format(self.name))
         dictionary[source_name] = value
         target_obj = _Tag.current_target(spec_obj, context)
         getattr(target_obj, self.name).append(value)
@@ -156,29 +162,29 @@ class _ListAndDict(_Tag):
 
 
 _tags = [
-    _NameValue('name', re.compile(r'^Name:\s*(\S+)')),
-    _NameValue('version', re.compile(r'^Version:\s*(\S+)')),
-    _NameValue('epoch', re.compile(r'^Epoch:\s*(\S+)')),
-    _NameValue('release', re.compile(r'^Release:\s*(\S+)')),
-    _NameValue('summary', re.compile(r'^Summary:\s*(.+)')),
-    _NameValue('license', re.compile(r'^License:\s*(.+)')),
-    _NameValue('group', re.compile(r'^Group:\s*(\S+)')),
-    _NameValue('url', re.compile(r'^URL:\s*(\S+)')),
-    _NameValue('buildroot', re.compile(r'^BuildRoot:\s*(\S+)')),
-    _NameValue('buildarch', re.compile(r'^BuildArch:\s*(\S+)')),
-    _ListAndDict('sources', re.compile(r'^(Source\d*):\s*(\S+)')),
-    _ListAndDict('patches', re.compile(r'^(Patch\d*):\s*(\S+)')),
-    _List('build_requires', re.compile(r'^BuildRequires:\s*(.+)')),
-    _List('requires', re.compile(r'^Requires:\s*(.+)')),
-    _List('conflicts', re.compile(r'^Conflicts:\s*(.+)')),
-    _List('obsoletes', re.compile(r'^Obsoletes:\s*(.+)')),
-    _List('provides', re.compile(r'^Provides:\s*(.+)')),
-    _List('packages', re.compile(r'^%package\s+(\S+)')),
-    _MacroDef('define', re.compile(r'^%define\s+(\S+)\s+(\S+)')),
-    _MacroDef('global', re.compile(r'^%global\s+(\S+)\s+(\S+)'))
+    _NameValue("name", re.compile(r"^Name:\s*(\S+)")),
+    _NameValue("version", re.compile(r"^Version:\s*(\S+)")),
+    _NameValue("epoch", re.compile(r"^Epoch:\s*(\S+)")),
+    _NameValue("release", re.compile(r"^Release:\s*(\S+)")),
+    _NameValue("summary", re.compile(r"^Summary:\s*(.+)")),
+    _NameValue("license", re.compile(r"^License:\s*(.+)")),
+    _NameValue("group", re.compile(r"^Group:\s*(\S+)")),
+    _NameValue("url", re.compile(r"^URL:\s*(\S+)")),
+    _NameValue("buildroot", re.compile(r"^BuildRoot:\s*(\S+)")),
+    _NameValue("buildarch", re.compile(r"^BuildArch:\s*(\S+)")),
+    _ListAndDict("sources", re.compile(r"^(Source\d*):\s*(\S+)")),
+    _ListAndDict("patches", re.compile(r"^(Patch\d*):\s*(\S+)")),
+    _List("build_requires", re.compile(r"^BuildRequires:\s*(.+)")),
+    _List("requires", re.compile(r"^Requires:\s*(.+)")),
+    _List("conflicts", re.compile(r"^Conflicts:\s*(.+)")),
+    _List("obsoletes", re.compile(r"^Obsoletes:\s*(.+)")),
+    _List("provides", re.compile(r"^Provides:\s*(.+)")),
+    _List("packages", re.compile(r"^%package\s+(\S+)")),
+    _MacroDef("define", re.compile(r"^%define\s+(\S+)\s+(\S+)")),
+    _MacroDef("global", re.compile(r"^%global\s+(\S+)\s+(\S+)")),
 ]
 
-_macro_pattern = re.compile(r'%{(\S+?)\}')
+_macro_pattern = re.compile(r"%{(\S+?)\}")
 
 
 def _parse(spec_obj, context, line):
@@ -215,7 +221,8 @@ class Requirement:
     This spec file's requirements have a name and either a required or minimum
     version.
     """
-    expr = re.compile(r'(.*?)\s+([<>]=?|=)\s+(\S+)')
+
+    expr = re.compile(r"(.*?)\s+([<>]=?|=)\s+(\S+)")
 
     def __init__(self, name):
         assert isinstance(name, str)
@@ -279,9 +286,13 @@ class Package:
         assert isinstance(name, str)
 
         for tag in _tags:
-            if tag.attr_type is list and tag.name in ["build_requires",
-                                                      "requires", "conflicts",
-                                                      "obsoletes", "provides"]:
+            if tag.attr_type is list and tag.name in [
+                "build_requires",
+                "requires",
+                "conflicts",
+                "obsoletes",
+                "provides",
+            ]:
                 setattr(self, tag.name, tag.attr_type())
 
         self.name = name
@@ -327,10 +338,8 @@ class Spec:
         """
 
         spec = Spec()
-        with open(filename, 'r', encoding='utf-8') as f:
-            parse_context = {
-                'current_subpackage': None
-            }
+        with open(filename, "r", encoding="utf-8") as f:
+            parse_context = {"current_subpackage": None}
             for line in f:
                 spec, parse_context = _parse(spec, parse_context, line)
         return spec
@@ -344,9 +353,7 @@ class Spec:
         """
 
         spec = Spec()
-        parse_context = {
-            'current_subpackage': None
-        }
+        parse_context = {"current_subpackage": None}
         for line in string.splitlines():
             spec, parse_context = _parse(spec, parse_context, line)
         return spec
@@ -403,7 +410,7 @@ def replace_macros(string, spec=None):
             value = getattr(spec, macro_name, None)
             if value:
                 return str(value)
-        return match.string[match.start():match.end()]
+        return match.string[match.start() : match.end()]
 
     # Recursively expand macros
     # Note: If macros are not defined in the spec file, this won't try to
