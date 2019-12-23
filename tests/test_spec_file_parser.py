@@ -189,6 +189,12 @@ class TestReplaceMacro:
         with pytest.raises(AssertionError):
             replace_macros("something something", spec=None)
 
+    def test_replace_unknown_section(self) -> None:
+        """Ensure that string that spec that has an unknown section warns."""
+
+        with pytest.warns(UserWarning):
+            spec = Spec.from_file(os.path.join(CURRENT_DIR, "perl-Array-Compare.spec"))
+
     def test_replace_unknown_macro(self) -> None:
         """Ensure that string that do not have a definition in the spec file are left intact."""
 
