@@ -10,8 +10,13 @@ add support for the missing pieces.
 
 """
 
-import re
+import typing
 from abc import ABCMeta, abstractmethod
+import re
+from functools import partial
+import argparse
+from warnings import warn
+from pathlib import Path
 
 __all__ = ["Spec", "replace_macros", "Package"]
 
@@ -72,6 +77,32 @@ class _NameValue(_Tag):
         setattr(target_obj, self.name, self.attr_type(value))
         return spec_obj, context
 
+class _SetterMacroDef(_Tag):
+    """Parse global macro definitions."""
+
+    def __init__(self, name, pattern_obj):
+        super().__init__(name, pattern_obj, str)
+    
+    def getNamespace(self, spec_obj, context):
+        raise NotImplementedError()
+
+    def update_impl(self, spec_obj, context, match_obj, line):
+        name, value = match_obj.groups()
+        setattr(self.getNamespace(spec_obj, context), name, str(value))
+        return spec_obj, context
+
+class _GlobalMacroDef(_SetterMacroDef):
+    """Parse global macro definitions."""
+
+    def getNamespace(self, spec_obj, context):
+        return spec_obj
+
+class _LocalMacroDef(_SetterMacroDef):
+    """Parse define macro definitions."""
+
+    def getNamespace(self, spec_obj, context):
+        return context["current_subpackage"]
+
 
 class _MacroDef(_Tag):
     """Parse global macro definitions."""
@@ -82,7 +113,88 @@ class _MacroDef(_Tag):
     def update_impl(self, spec_obj, context, match_obj, line):
         name, value = match_obj.groups()
         setattr(spec_obj, name, str(value))
+        context["line_processor"] = None
         return spec_obj, context
+
+
+class _DummyMacroDef(_Tag):
+    """Parse global macro definitions."""
+
+    def __init__(self, name, pattern_obj):
+        super().__init__(name, pattern_obj, str)
+
+    def update_impl(self, spec_obj, context, match_obj, line):
+        context["line_processor"] = None
+        warn("Unknown macro: " + line)
+        return spec_obj, context
+
+
+class _SectionStartMacrodef(_Tag):
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-f', action='store')
+    parser.add_argument('-n', action='store')
+    parser.add_argument('content', nargs='*')
+   
+    def __init__(self, name):
+        super().__init__(name, re.compile(r"^%("+name+")(?:\s+(.+))?$"), list)
+    
+    def line_processor(propName, context, line):
+        getattr(context["current_subpackage"], propName).append(line)
+
+    def update_impl(self, spec_obj, context, match_obj, line):
+        macroName = match_obj.group(1)
+        commandLine = match_obj.group(2)
+        if commandLine:
+            res, rest = self.__class__.parser.parse_known_args(commandLine.split(" "))
+            if rest:
+                raise ValueError(rest)
+            spkg = context["current_subpackage"]
+            pkgName = None
+            if res.n:
+                pkgName = res.n
+            #elif not res.f:
+            #    if len(res.content) != 1:
+            #        raise ValueError()
+            #    pkgName = "-".join((spec_obj.name, res.content[0]))
+
+            if pkgName:
+                spkg = context["current_subpackage"] = spec_obj.packages_dict[pkgName]
+        else:
+            res = None
+            context["current_subpackage"] = spec_obj
+ 
+        if res:
+            prop = getattr(spkg, self.name)
+            if res.f:
+                try:
+                    f = Path(res.f)
+                    for l in f.splitlines():
+                        l = l.strip()
+                        prop.append(f)
+                except:
+                    warn("File ignored as nonexistent: " + res.f)
+            for f in res.content:
+                prop.append(f)
+        else:
+            context["line_processor"] = partial(self.__class__.line_processor, self.name)
+        
+        return spec_obj, context
+
+
+class _InSectionMacroProp(_Tag):
+    def __init__(self, name, pattern_obj=None):
+        if pattern_obj is None:
+            pattern_obj = re.compile(r"^%("+name+")(?:\s+(.+))?$")
+        super().__init__(name, pattern_obj, list)
+
+    def update_impl(self, spec_obj, context, match_obj, line):
+        macroName = match_obj.group(1)
+        commandLine = match_obj.group(2)
+        spkg = context["current_subpackage"]
+        prop = getattr(spkg, self.name)
+        prop.append(commandLine)
+        return spec_obj, context
+
 
 
 class _List(_Tag):
@@ -92,6 +204,7 @@ class _List(_Tag):
         super().__init__(name, pattern_obj, list)
 
     def update_impl(self, spec_obj, context, match_obj, line):
+        context["line_processor"] = False
         target_obj = _Tag.current_target(spec_obj, context)
 
         if not hasattr(target_obj, self.name):
@@ -153,6 +266,7 @@ class _ListAndDict(_Tag):
         super().__init__(name, pattern_obj, list)
 
     def update_impl(self, spec_obj, context, match_obj, line):
+        context["line_processor"] = False
         source_name, value = match_obj.groups()
         dictionary = getattr(spec_obj, "{}_dict".format(self.name))
         dictionary[source_name] = value
@@ -160,6 +274,18 @@ class _ListAndDict(_Tag):
         getattr(target_obj, self.name).append(value)
         return spec_obj, context
 
+def elvis(*args):
+    try:
+        return next(filter(None, *args), None)
+    except:
+        pass
+
+def dictElvis(prop: str, *args):
+    for o in args:
+        try:
+            return getattr(o, prop)
+        except:
+            pass
 
 _tags = [
     _NameValue("name", re.compile(r"^Name:\s*(\S+)")),
@@ -180,18 +306,56 @@ _tags = [
     _List("obsoletes", re.compile(r"^Obsoletes:\s*(.+)")),
     _List("provides", re.compile(r"^Provides:\s*(.+)")),
     _List("packages", re.compile(r"^%package\s+(\S+)")),
-    _MacroDef("define", re.compile(r"^%define\s+(\S+)\s+(\S+)")),
-    _MacroDef("global", re.compile(r"^%global\s+(\S+)\s+(\S+)")),
+    
+    _LocalMacroDef("define", re.compile(r"^%define\s+(\S+)\s+(\S+)")),
+    _GlobalMacroDef("global", re.compile(r"^%global\s+(\S+)\s+(\S+)")),
+    
+    _SectionStartMacrodef("install"),
+    _InSectionMacroProp("pre"),
+    _InSectionMacroProp("post"),
+    _InSectionMacroProp("postun"),
+    _InSectionMacroProp("postun"),
+    
+    _SectionStartMacrodef("files"),
+    _InSectionMacroProp("dir"),
+    _InSectionMacroProp("exclude"),
+    _InSectionMacroProp("doc"),
+    _InSectionMacroProp("config", re.compile(r"^%(config)(?:\(noreplace\))?(?:\s*(.+))?$")),
+    
+    _SectionStartMacrodef("clean"),
+    _SectionStartMacrodef("build"),
+    _SectionStartMacrodef("prep"),
+    _SectionStartMacrodef("description"),
+    _SectionStartMacrodef("changelog"),
+
+    
+    _DummyMacroDef("dummy", re.compile(r"^%[a-z_]+\b.*$")),
 ]
 
 _macro_pattern = re.compile(r"%{(\S+?)\}")
 
 
 def _parse(spec_obj, context, line):
+    actually_replaced = 1
+    def line_replacer(m):
+        nonlocal actually_replaced
+        vn = m.group(1)
+        if hasattr(spec_obj, vn):
+            actually_replaced += 1
+            return getattr(spec_obj, vn)
+        else:
+            return m.group(0)
+
+    while actually_replaced>0:
+        actually_replaced = 0
+        line, _ = variableRx.subn(line_replacer, line)
+    
     for tag in _tags:
         match = tag.test(line)
         if match:
             return tag.update(spec_obj, context, match, line)
+    if context["line_processor"]:
+        context["line_processor"](context, line)
     return spec_obj, context
 
 
@@ -286,13 +450,7 @@ class Package:
         assert isinstance(name, str)
 
         for tag in _tags:
-            if tag.attr_type is list and tag.name in [
-                "build_requires",
-                "requires",
-                "conflicts",
-                "obsoletes",
-                "provides",
-            ]:
+            if tag.attr_type is list:
                 setattr(self, tag.name, tag.attr_type())
 
         self.name = name
@@ -302,12 +460,17 @@ class Package:
         return "Package('{}')".format(self.name)
 
 
+def init_context(spec):
+    return {"current_subpackage": spec, "line_processor": None}
+
+
+variableRx = re.compile("\%\{([a-zA-Z0-9_]+)\}")
 class Spec:
     """Represents a single spec file.
 
     """
 
-    def __init__(self):
+    def __init__(self, initial: typing.Dict[str, typing.Any]=None):
         for tag in _tags:
             if tag.attr_type is list:
                 setattr(self, tag.name, tag.attr_type())
@@ -316,6 +479,9 @@ class Spec:
 
         self.sources_dict = dict()
         self.patches_dict = dict()
+        if initial is not None:
+            self.__dict__.update(initial)
+        
 
     @property
     def packages_dict(self):
@@ -330,36 +496,37 @@ class Spec:
         return dict(zip([package.name for package in self.packages], self.packages))
 
     @staticmethod
-    def from_file(filename):
+    def from_file(filename, initial=None):
         """Creates a new Spec object from a given file.
 
         :param filename: The path to the spec file.
         :return: A new Spec object.
         """
 
-        spec = Spec()
+        spec = Spec(initial)
         with open(filename, "r", encoding="utf-8") as f:
-            parse_context = {"current_subpackage": None}
+            parse_context = init_context(spec)
             for line in f:
                 spec, parse_context = _parse(spec, parse_context, line)
         return spec
 
     @staticmethod
-    def from_string(string: str):
+    def from_string(string: str, initial=None):
         """Creates a new Spec object from a given string.
 
         :param string: The contents of a spec file.
         :return: A new Spec object.
         """
 
-        spec = Spec()
-        parse_context = {"current_subpackage": None}
+        spec = Spec(initial)
+
+        parse_context = init_context(spec)
         for line in string.splitlines():
             spec, parse_context = _parse(spec, parse_context, line)
         return spec
 
 
-def replace_macros(string, spec=None):
+def replace_macros(string, spec: typing.Dict[str, typing.Any]=None):
     """Replace all macros in given string with corresponding values.
 
     For example: a string '%{name}-%{version}.tar.gz' will be transformed to 'foo-2.0.tar.gz'.

@@ -39,7 +39,7 @@ class TestSpecFileParser:
         assert len(spec.sources) == 2
         assert (
             spec.sources[0]
-            == "http://llvm.org/releases/%{version}/%{name}-%{version}.src.tar.xz"
+            == "http://llvm.org/releases/" + spec.version + "/" + spec.name + "-" + spec.version + ".src.tar.xz"
         )
         assert spec.sources[1] == "llvm-config.h"
 
@@ -97,12 +97,13 @@ class TestSpecFileParser:
 
         # Summary: tag
         assert spec.summary == "JavaScript Remote Debugger for SpiderMonkey"
+        assert spec.name == "jsrdbg"
         packages = spec.packages_dict
         assert (
             packages["jsrdbg-devel"].summary
-            == "Header files, libraries and development documentation for %{name}"
+            == "Header files, libraries and development documentation for " + spec.name
         )
-        assert packages["jrdb"].summary == "A command line debugger client for %{name}"
+        assert packages["jrdb"].summary == "A command line debugger client for " + spec.name
 
     def test_defines(self):
         spec = Spec.from_file(os.path.join(CURRENT_DIR, "attica-qt5.spec"))
