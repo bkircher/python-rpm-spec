@@ -109,6 +109,7 @@ class TestSpecFileParser:
 
         # Summary: tag
         assert spec.summary == "JavaScript Remote Debugger for SpiderMonkey"
+        assert spec.name == "jsrdbg"
         packages = spec.packages_dict
         assert (
             packages["jsrdbg-devel"].summary
@@ -135,13 +136,6 @@ class TestSpecFileParser:
         See issue https://github.com/bkircher/python-rpm-spec/issues/33.
 
         """
-        spec = Spec.from_string(
-            r"""
-%global myversion 1.2.3
-Version: %{myversion}
-        """
-        )
-        assert replace_macros(spec.version, spec) == "1.2.3"
 
         spec = Spec.from_string(
             r"""
@@ -149,7 +143,7 @@ Version: %{myversion}
 Version: %{version}
         """
         )
-        assert replace_macros(spec.version, spec) == "1.2.3"
+        spec.version == "1.2.3"
 
     def test_requirement_parsing(self) -> None:
         spec = Spec.from_file(os.path.join(CURRENT_DIR, "attica-qt5.spec"))
