@@ -22,15 +22,15 @@ __all__ = ["Spec", "replace_macros", "Package"]
 
 
 class _Tag(metaclass=ABCMeta):
-    def __init__(self, name, pattern_obj, attr_type):
+    def __init__(self, name: str, pattern_obj: re.Pattern, attr_type: type) -> None:
         self.name = name
         self.pattern_obj = pattern_obj
         self.attr_type = attr_type
 
-    def test(self, line):
+    def test(self, line: str) -> typing.Optional[re.Match]:
         return re.search(self.pattern_obj, line)
 
-    def update(self, spec_obj, context, match_obj, line):
+    def update(self, spec_obj: "Spec", context: typing.Dict[str, typing.Any], match_obj: re.Match, line: str) -> typing.Any:
         """Update given spec object and parse context and return them again.
 
         :param spec_obj: An instance of Spec class
@@ -52,7 +52,7 @@ class _Tag(metaclass=ABCMeta):
         pass
 
     @staticmethod
-    def current_target(spec_obj, context):
+    def current_target(spec_obj: "Spec", context: typing.Dict[str, typing.Any]) -> typing.Union["Spec", "Package"]:
         target_obj = spec_obj
         if context["current_subpackage"] is not None:
             target_obj = context["current_subpackage"]
@@ -62,10 +62,10 @@ class _Tag(metaclass=ABCMeta):
 class _NameValue(_Tag):
     """Parse a simple name → value tag."""
 
-    def __init__(self, name, pattern_obj, attr_type=None):
+    def __init__(self, name: str, pattern_obj: re.Pattern, attr_type: typing.Optional[type] = None) -> None:
         super().__init__(name, pattern_obj, attr_type if attr_type else str)
 
-    def update_impl(self, spec_obj, context, match_obj, line):
+    def update_impl(self, spec_obj: "Spec", context: typing.Dict[str, typing.Any], match_obj: re.Match, line: str) -> typing.Tuple["Spec", dict]:
         target_obj = _Tag.current_target(spec_obj, context)
         value = match_obj.group(1)
 
@@ -80,13 +80,13 @@ class _NameValue(_Tag):
 class _SetterMacroDef(_Tag):
     """Parse global macro definitions."""
 
-    def __init__(self, name, pattern_obj):
+    def __init__(self, name: str, pattern_obj: re.Pattern) -> None:
         super().__init__(name, pattern_obj, str)
     
     def getNamespace(self, spec_obj, context):
         raise NotImplementedError()
 
-    def update_impl(self, spec_obj, context, match_obj, line):
+    def update_impl(self, spec_obj: "Spec", context: typing.Dict[str, typing.Any], match_obj: re.Match, line: str) -> typing.Tuple["Spec", dict]:
         name, value = match_obj.groups()
         setattr(self.getNamespace(spec_obj, context), name, str(value))
         return spec_obj, context
@@ -94,13 +94,13 @@ class _SetterMacroDef(_Tag):
 class _GlobalMacroDef(_SetterMacroDef):
     """Parse global macro definitions."""
 
-    def getNamespace(self, spec_obj, context):
+    def getNamespace(self, spec_obj: "Spec", context: typing.Dict[str, typing.Any]) -> "Spec":
         return spec_obj
 
 class _LocalMacroDef(_SetterMacroDef):
     """Parse define macro definitions."""
 
-    def getNamespace(self, spec_obj, context):
+    def getNamespace(self, spec_obj: "Spec", context: typing.Dict[str, typing.Any]) -> "Spec":
         return context["current_subpackage"]
 
 
@@ -120,10 +120,10 @@ class _MacroDef(_Tag):
 class _DummyMacroDef(_Tag):
     """Parse global macro definitions."""
 
-    def __init__(self, name, pattern_obj):
+    def __init__(self, name: str, pattern_obj: re.Pattern) -> None:
         super().__init__(name, pattern_obj, str)
 
-    def update_impl(self, spec_obj, context, match_obj, line):
+    def update_impl(self, spec_obj: "Spec", context: typing.Dict[str, typing.Any], match_obj: re.Match, line: str) -> typing.Any:
         context["line_processor"] = None
         warn("Unknown macro: " + line)
         return spec_obj, context
@@ -135,13 +135,13 @@ class _SectionStartMacrodef(_Tag):
     parser.add_argument('-n', action='store')
     parser.add_argument('content', nargs='*')
    
-    def __init__(self, name):
+    def __init__(self, name: str) -> None:
         super().__init__(name, re.compile(r"^%("+name+")(?:\s+(.+))?$"), list)
     
-    def line_processor(propName, context, line):
+    def line_processor(propName, context: typing.Dict[str, typing.Any], line: str) -> None:
         getattr(context["current_subpackage"], propName).append(line)
 
-    def update_impl(self, spec_obj, context, match_obj, line):
+    def update_impl(self, spec_obj: "Spec", context: typing.Dict[str, typing.Any], match_obj: re.Match, line: str) -> typing.Any:
         macroName = match_obj.group(1)
         commandLine = match_obj.group(2)
         if commandLine:
@@ -182,12 +182,12 @@ class _SectionStartMacrodef(_Tag):
 
 
 class _InSectionMacroProp(_Tag):
-    def __init__(self, name, pattern_obj=None):
+    def __init__(self, name: str, pattern_obj: typing.Optional[re.Pattern] = None) -> None:
         if pattern_obj is None:
             pattern_obj = re.compile(r"^%("+name+")(?:\s+(.+))?$")
         super().__init__(name, pattern_obj, list)
 
-    def update_impl(self, spec_obj, context, match_obj, line):
+    def update_impl(self, spec_obj: "Spec", context: typing.Dict[str, typing.Any], match_obj: re.Match, line: str) -> typing.Tuple["Spec", dict]:
         macroName = match_obj.group(1)
         commandLine = match_obj.group(2)
         spkg = context["current_subpackage"]
@@ -200,10 +200,10 @@ class _InSectionMacroProp(_Tag):
 class _List(_Tag):
     """Parse a tag that expands to a list."""
 
-    def __init__(self, name, pattern_obj):
+    def __init__(self, name: str, pattern_obj: re.Pattern) -> None:
         super().__init__(name, pattern_obj, list)
 
-    def update_impl(self, spec_obj, context, match_obj, line):
+    def update_impl(self, spec_obj: "Spec", context: typing.Dict[str, typing.Any], match_obj: re.Match, line: str) -> typing.Tuple["Spec", dict]:
         context["line_processor"] = False
         target_obj = _Tag.current_target(spec_obj, context)
 
@@ -262,10 +262,10 @@ class _List(_Tag):
 class _ListAndDict(_Tag):
     """Parse a tag that expands to a list and to a dict."""
 
-    def __init__(self, name, pattern_obj):
+    def __init__(self, name: str, pattern_obj: re.Pattern) -> None:
         super().__init__(name, pattern_obj, list)
 
-    def update_impl(self, spec_obj, context, match_obj, line):
+    def update_impl(self, spec_obj: "Spec", context: typing.Dict[str, typing.Any], match_obj: re.Match, line: str) -> typing.Tuple["Spec", dict]:
         context["line_processor"] = False
         source_name, value = match_obj.groups()
         dictionary = getattr(spec_obj, "{}_dict".format(self.name))
@@ -335,7 +335,7 @@ _tags = [
 _macro_pattern = re.compile(r"%{(\S+?)\}")
 
 
-def _parse(spec_obj, context, line):
+def _parse(spec_obj: "Spec", context: typing.Dict[str, typing.Any], line: str) -> typing.Any:
     actually_replaced = 1
     def line_replacer(m):
         nonlocal actually_replaced
@@ -388,7 +388,7 @@ class Requirement:
 
     expr = re.compile(r"(.*?)\s+([<>]=?|=)\s+(\S+)")
 
-    def __init__(self, name):
+    def __init__(self, name: str) -> None:
         assert isinstance(name, str)
         self.line = name
         match = Requirement.expr.match(name)
@@ -446,7 +446,7 @@ class Package:
 
     """
 
-    def __init__(self, name):
+    def __init__(self, name: str) -> None:
         assert isinstance(name, str)
 
         for tag in _tags:
@@ -456,21 +456,19 @@ class Package:
         self.name = name
         self.is_subpackage = False
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return "Package('{}')".format(self.name)
 
 
-def init_context(spec):
-    return {"current_subpackage": spec, "line_processor": None}
-
-
 variableRx = re.compile("\%\{([a-zA-Z0-9_]+)\}")
+InitializerDictT = typing.Optional[typing.Dict[str, typing.Any]]
+
 class Spec:
     """Represents a single spec file.
 
     """
 
-    def __init__(self, initial: typing.Dict[str, typing.Any]=None):
+    def __init__(self, initial: InitializerDictT = None) -> None:
         for tag in _tags:
             if tag.attr_type is list:
                 setattr(self, tag.name, tag.attr_type())
@@ -484,7 +482,7 @@ class Spec:
         
 
     @property
-    def packages_dict(self):
+    def packages_dict(self) -> typing.Dict[str, Package]:
         """All packages in this RPM spec as a dictionary.
 
         You can access the individual packages by their package name, e.g.,
@@ -496,7 +494,7 @@ class Spec:
         return dict(zip([package.name for package in self.packages], self.packages))
 
     @staticmethod
-    def from_file(filename, initial=None):
+    def from_file(filename: str, initial: InitializerDictT = None) -> "Spec":
         """Creates a new Spec object from a given file.
 
         :param filename: The path to the spec file.
@@ -511,7 +509,7 @@ class Spec:
         return spec
 
     @staticmethod
-    def from_string(string: str, initial=None):
+    def from_string(string: str, initial: InitializerDictT = None) -> "Spec":
         """Creates a new Spec object from a given string.
 
         :param string: The contents of a spec file.
@@ -525,8 +523,11 @@ class Spec:
             spec, parse_context = _parse(spec, parse_context, line)
         return spec
 
+def init_context(spec: Spec) -> typing.Dict[str, typing.Union[Spec, None]]:
+    return {"current_subpackage": spec, "line_processor": None}
 
-def replace_macros(string, spec: typing.Dict[str, typing.Any]=None):
+
+def replace_macros(string: str, spec: typing.Dict[str, typing.Any] = None) -> str:
     """Replace all macros in given string with corresponding values.
 
     For example: a string '%{name}-%{version}.tar.gz' will be transformed to 'foo-2.0.tar.gz'.
