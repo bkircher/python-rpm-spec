@@ -391,7 +391,7 @@ def replace_macros(string, spec=None):
         if _is_conditional(macro_name) and spec:
             parts = macro_name[1:].split(sep=":", maxsplit=1)
             assert parts
-            if _test_conditional(macro_name):  # ?
+            if _test_conditional(macro_name):
                 if hasattr(spec, parts[0]):
                     if len(parts) == 2:
                         return parts[1]
@@ -399,14 +399,14 @@ def replace_macros(string, spec=None):
                     return getattr(spec, parts[0], None)
 
                 return ""
-            else:  # !
-                if not hasattr(spec, parts[0]):
-                    if len(parts) == 2:
-                        return parts[1]
 
-                    return getattr(spec, parts[0], None)
+            if not hasattr(spec, parts[0]):
+                if len(parts) == 2:
+                    return parts[1]
 
-                return ""
+                return getattr(spec, parts[0], None)
+
+            return ""
 
         if spec:
             value = getattr(spec, macro_name, None)
