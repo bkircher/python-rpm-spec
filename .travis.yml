@@ -3,10 +3,10 @@ sudo: false
 language: python
 
 python:
-  - 3.5
+  - 3.8
 
 install:
   - pip install pytest coverage pytest-cov
 
 script:
-  - py.test --cov=pyrpm.spec tests
+  - pytest --cov=pyrpm.spec tests
