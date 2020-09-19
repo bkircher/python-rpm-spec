@@ -37,10 +37,7 @@ class TestSpecFileParser:
         assert spec.version == "3.8.0"
 
         assert len(spec.sources) == 2
-        assert (
-            spec.sources[0]
-            == "http://llvm.org/releases/%{version}/%{name}-%{version}.src.tar.xz"
-        )
+        assert spec.sources[0] == "http://llvm.org/releases/%{version}/%{name}-%{version}.src.tar.xz"
         assert spec.sources[1] == "llvm-config.h"
 
         assert len(spec.patches) == 1
@@ -98,10 +95,7 @@ class TestSpecFileParser:
         # Summary: tag
         assert spec.summary == "JavaScript Remote Debugger for SpiderMonkey"
         packages = spec.packages_dict
-        assert (
-            packages["jsrdbg-devel"].summary
-            == "Header files, libraries and development documentation for %{name}"
-        )
+        assert packages["jsrdbg-devel"].summary == "Header files, libraries and development documentation for %{name}"
         assert packages["jrdb"].summary == "A command line debugger client for %{name}"
 
     def test_defines(self):
@@ -123,16 +117,20 @@ class TestSpecFileParser:
         See issue https://github.com/bkircher/python-rpm-spec/issues/33.
 
         """
-        spec = Spec.from_string(r"""
+        spec = Spec.from_string(
+            r"""
 %global myversion 1.2.3
 Version: %{myversion}
-        """)
+        """
+        )
         assert replace_macros(spec.version, spec) == "1.2.3"
 
-        spec = Spec.from_string(r"""
+        spec = Spec.from_string(
+            r"""
 %global version 1.2.3
 Version: %{version}
-        """)
+        """
+        )
         assert replace_macros(spec.version, spec) == "1.2.3"
 
     def test_requirement_parsing(self):
@@ -182,10 +180,7 @@ class TestSpecClass:
 class TestReplaceMacro:
     def test_replace_macro_with_spec(self):
         spec = Spec.from_file(os.path.join(CURRENT_DIR, "llvm.spec"))
-        assert (
-            replace_macros(spec.sources[0], spec)
-            == "http://llvm.org/releases/3.8.0/llvm-3.8.0.src.tar.xz"
-        )
+        assert replace_macros(spec.sources[0], spec) == "http://llvm.org/releases/3.8.0/llvm-3.8.0.src.tar.xz"
         assert replace_macros(spec.sources[1], spec) == "llvm-config.h"
 
     def test_replace_without_spec(self):

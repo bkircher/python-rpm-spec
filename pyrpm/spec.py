@@ -163,8 +163,10 @@ class _ListAndDict(_Tag):
         getattr(target_obj, self.name).append(value)
         return spec_obj, context
 
+
 def re_tag_compile(tag):
     return re.compile(tag, re.IGNORECASE)
+
 
 _tags = [
     _NameValue("name", re_tag_compile(r"^Name\s*:\s*(\S+)")),
@@ -310,9 +312,7 @@ class Package:
 
 
 class Spec:
-    """Represents a single spec file.
-
-    """
+    """Represents a single spec file."""
 
     def __init__(self):
         for tag in _tags:
