@@ -1,8 +1,13 @@
 # Changelog
 
-## 0.x (YYYY-MM-DD)
+## 0.10 (2020-09-19)
 
-## 0.9 (202-05-02)
+Changes:
+
+* Ignore spaces before ':' separator (see PR [#32][https://github.com/bkircher/python-rpm-spec/pull/32])
+* Fix behavior of replace_macro function when macro is a tag, too (see issue [#33](https://github.com/bkircher/python-rpm-spec/issues/33)).
+
+## 0.9 (2020-05-02)
 
 Changes:
 
