@@ -81,7 +81,10 @@ class _MacroDef(_Tag):
 
     def update_impl(self, spec_obj, context, match_obj, line):
         name, value = match_obj.groups()
-        setattr(spec_obj, name, str(value))
+        spec_obj.macros[name] = str(value)
+        if name not in _tag_names:
+            # Also make available as attribute of spec object
+            setattr(spec_obj, name, str(value))
         return spec_obj, context
 
 
@@ -185,6 +188,8 @@ _tags = [
     _MacroDef("define", re.compile(r"^%define\s+(\S+)\s+(\S+)")),
     _MacroDef("global", re.compile(r"^%global\s+(\S+)\s+(\S+)")),
 ]
+
+_tag_names = [tag.name for tag in _tags]
 
 _macro_pattern = re.compile(r"%{(\S+?)\}")
 
@@ -316,8 +321,9 @@ class Spec:
             else:
                 setattr(self, tag.name, None)
 
-        self.sources_dict = dict()
-        self.patches_dict = dict()
+        self.sources_dict = {}
+        self.patches_dict = {}
+        self.macros = {}
 
     @property
     def packages_dict(self):
@@ -392,24 +398,24 @@ def replace_macros(string, spec=None):
             parts = macro_name[1:].split(sep=":", maxsplit=1)
             assert parts
             if _test_conditional(macro_name):
-                if hasattr(spec, parts[0]):
+                if hasattr(spec, parts[0]) or parts[0] in spec.macros:
                     if len(parts) == 2:
                         return parts[1]
 
-                    return getattr(spec, parts[0], None)
+                    return spec.macros.get(parts[0], getattr(spec, parts[0], None))
 
                 return ""
 
-            if not hasattr(spec, parts[0]):
+            if not hasattr(spec, parts[0]) and parts[0] not in spec.macros:
                 if len(parts) == 2:
                     return parts[1]
 
-                return getattr(spec, parts[0], None)
+                return spec.macros.get(parts[0], getattr(spec, parts[0], None))
 
             return ""
 
         if spec:
-            value = getattr(spec, macro_name, None)
+            value = spec.macros.get(macro_name, getattr(spec, macro_name, None))
             if value:
                 return str(value)
         return match.string[match.start() : match.end()]
