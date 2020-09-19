@@ -95,6 +95,5 @@ ENV/
 .idea/
 
 *.tar.gz
-.vscode
 *.src.rpm
 .pytest_cache/
