@@ -117,6 +117,24 @@ class TestSpecFileParser:
         assert spec._libname == "KF5Attica"
         assert spec._tar_path == "5.31"
 
+    def test_replace_macro_that_is_tag_name(self):
+        """Test that we are able to replace macros which are in the tag list.
+
+        See issue https://github.com/bkircher/python-rpm-spec/issues/33.
+
+        """
+        spec = Spec.from_string(r"""
+%global myversion 1.2.3
+Version: %{myversion}
+        """)
+        assert replace_macros(spec.version, spec) == "1.2.3"
+
+        spec = Spec.from_string(r"""
+%global version 1.2.3
+Version: %{version}
+        """)
+        assert replace_macros(spec.version, spec) == "1.2.3"
+
     def test_requirement_parsing(self):
         spec = Spec.from_file(os.path.join(CURRENT_DIR, "attica-qt5.spec"))
 
