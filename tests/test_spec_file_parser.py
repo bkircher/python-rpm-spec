@@ -5,6 +5,9 @@ from pyrpm.spec import Package, Spec, replace_macros
 CURRENT_DIR = os.path.dirname(os.path.realpath(__file__))
 
 
+# pylint: disable=no-self-use,protected-access
+
+
 class TestPackageClass:
     def test_repr_string(self):
         package = Package("foo")
@@ -51,7 +54,7 @@ class TestSpecFileParser:
         assert not spec.packages[0].is_subpackage
 
     def test_parse_subpackages(self):
-        # spec file contains four subpackages and one base package
+        # spec file contains four sub-packages and one base package
         spec = Spec.from_file(os.path.join(CURRENT_DIR, "llvm.spec"))
         assert len(spec.packages) == 5
 
@@ -198,6 +201,7 @@ class TestReplaceMacro:
 
     def test_replace_macro_twice(self):
         spec = Spec.from_file(os.path.join(CURRENT_DIR, "jsrdbg.spec"))
+        # pylint: disable=line-too-long
         assert (
             replace_macros(spec.sources[0], spec)
             == "https://github.com/swojtasiak/jsrdbg/archive/26f9f2b27c04b4aec9cd67baaf9a0a206bbbd5c7.tar.gz#/jsrdbg-26f9f2b27c04b4aec9cd67baaf9a0a206bbbd5c7.tar.gz"
