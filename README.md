@@ -1,6 +1,5 @@
 # python-rpm-spec
 
-[![Build Status](https://travis-ci.org/bkircher/python-rpm-spec.svg?branch=master)](https://travis-ci.org/bkircher/python-rpm-spec)
 [![PyPI version](https://badge.fury.io/py/python-rpm-spec.svg)](https://badge.fury.io/py/python-rpm-spec)
 
 python-rpm-spec is a Python library for parsing RPM spec files.
