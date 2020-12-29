@@ -10,23 +10,23 @@ add support for the missing pieces.
 
 """
 
-import typing
 import re
 from abc import ABCMeta, abstractmethod
+from typing import Any, Dict, List, Optional, Union, Tuple, Type, cast
 
 __all__ = ["Spec", "replace_macros", "Package"]
 
 
 class _Tag(metaclass=ABCMeta):
-    def __init__(self, name: str, pattern_obj: re.Pattern, attr_type: type) -> None:
+    def __init__(self, name: str, pattern_obj: re.Pattern, attr_type: Type[Any]) -> None:
         self.name = name
         self.pattern_obj = pattern_obj
         self.attr_type = attr_type
 
-    def test(self, line: str) -> typing.Optional[re.Match]:
+    def test(self, line: str) -> Optional[re.Match]:
         return re.search(self.pattern_obj, line)
 
-    def update(self, spec_obj: "Spec", context: typing.Dict[str, typing.Any], match_obj: re.Match, line: str) -> typing.Any:
+    def update(self, spec_obj: "Spec", context: Dict[str, Any], match_obj: re.Match, line: str) -> Any:
         """Update given spec object and parse context and return them again.
 
         :param spec_obj: An instance of Spec class
@@ -48,7 +48,7 @@ class _Tag(metaclass=ABCMeta):
         pass
 
     @staticmethod
-    def current_target(spec_obj: "Spec", context: typing.Dict[str, typing.Any]) -> typing.Union["Spec", "Package"]:
+    def current_target(spec_obj: "Spec", context: Dict[str, Any]) -> Union["Spec", "Package"]:
         target_obj = spec_obj
         if context["current_subpackage"] is not None:
             target_obj = context["current_subpackage"]
@@ -58,12 +58,10 @@ class _Tag(metaclass=ABCMeta):
 class _NameValue(_Tag):
     """Parse a simple name → value tag."""
 
-    def __init__(self, name: str, pattern_obj: re.Pattern, attr_type: typing.Optional[type] = None) -> None:
-        super().__init__(name, pattern_obj, attr_type if attr_type else str)
+    def __init__(self, name: str, pattern_obj: re.Pattern, attr_type: Optional[Type[Any]] = None) -> None:
+        super().__init__(name, pattern_obj, cast(Type[Any], attr_type if attr_type else str))
 
-    def update_impl(
-        self, spec_obj: "Spec", context: typing.Dict[str, typing.Any], match_obj: re.Match, line: str
-    ) -> typing.Tuple["Spec", dict]:
+    def update_impl(self, spec_obj: "Spec", context: Dict[str, Any], match_obj: re.Match, line: str) -> Tuple["Spec", dict]:
         target_obj = _Tag.current_target(spec_obj, context)
         value = match_obj.group(1)
 
@@ -97,9 +95,7 @@ class _List(_Tag):
     def __init__(self, name: str, pattern_obj: re.Pattern) -> None:
         super().__init__(name, pattern_obj, list)
 
-    def update_impl(
-        self, spec_obj: "Spec", context: typing.Dict[str, typing.Any], match_obj: re.Match, line: str
-    ) -> typing.Tuple["Spec", dict]:
+    def update_impl(self, spec_obj: "Spec", context: Dict[str, Any], match_obj: re.Match, line: str) -> Tuple["Spec", dict]:
         target_obj = _Tag.current_target(spec_obj, context)
 
         if not hasattr(target_obj, self.name):
@@ -132,7 +128,7 @@ class _List(_Tag):
 
             # 1. Tokenize
             tokens = [val for val in re.split("[\t\n, ]", value) if val != ""]
-            values = []
+            values: List[str] = []
 
             # 2. Join
             add = False
@@ -160,9 +156,7 @@ class _ListAndDict(_Tag):
     def __init__(self, name: str, pattern_obj: re.Pattern) -> None:
         super().__init__(name, pattern_obj, list)
 
-    def update_impl(
-        self, spec_obj: "Spec", context: typing.Dict[str, typing.Any], match_obj: re.Match, line: str
-    ) -> typing.Tuple["Spec", dict]:
+    def update_impl(self, spec_obj: "Spec", context: Dict[str, Any], match_obj: re.Match, line: str) -> Tuple["Spec", dict]:
         source_name, value = match_obj.groups()
         dictionary = getattr(spec_obj, "{}_dict".format(self.name))
         dictionary[source_name] = value
@@ -203,7 +197,7 @@ _tag_names = [tag.name for tag in _tags]
 _macro_pattern = re.compile(r"%{(\S+?)\}")
 
 
-def _parse(spec_obj: "Spec", context: typing.Dict[str, typing.Any], line: str) -> typing.Any:
+def _parse(spec_obj: "Spec", context: Dict[str, Any], line: str) -> Any:
     for tag in _tags:
         match = tag.test(line)
         if match:
@@ -243,6 +237,9 @@ class Requirement:
     def __init__(self, name: str) -> None:
         assert isinstance(name, str)
         self.line = name
+        self.name: str
+        self.operator: Optional[str]
+        self.version: Optional[str]
         match = Requirement.expr.match(name)
         if match:
             self.name = match.group(1)
@@ -318,7 +315,7 @@ class Package:
         return "Package('{}')".format(self.name)
 
 
-InitializerDictT = typing.Optional[typing.Dict[str, typing.Any]]
+InitializerDictT = Optional[Dict[str, Any]]
 
 
 class Spec:
@@ -331,12 +328,15 @@ class Spec:
             else:
                 setattr(self, tag.name, None)
 
-        self.sources_dict = {}
-        self.patches_dict = {}
-        self.macros = {}
+        self.sources_dict: Dict[str, str] = {}
+        self.patches_dict: Dict[str, str] = {}
+        self.macros: Dict[str, str] = {}
+
+        self.name: Optional[str]
+        self.packages: List[Package] = []
 
     @property
-    def packages_dict(self) -> typing.Dict[str, Package]:
+    def packages_dict(self) -> Dict[str, Package]:
         """All packages in this RPM spec as a dictionary.
 
         You can access the individual packages by their package name, e.g.,
@@ -377,7 +377,7 @@ class Spec:
         return spec
 
 
-def replace_macros(string: str, spec: typing.Dict[str, typing.Any] = None) -> str:
+def replace_macros(string: str, spec: Spec) -> str:
     """Replace all macros in given string with corresponding values.
 
     For example: a string '%{name}-%{version}.tar.gz' will be transformed to 'foo-2.0.tar.gz'.

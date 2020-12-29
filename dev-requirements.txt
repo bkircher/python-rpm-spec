@@ -2,4 +2,5 @@ black
 flit
 pylint
 pytest
+pytest-mypy
 rope

@@ -9,18 +9,18 @@ CURRENT_DIR = os.path.dirname(os.path.realpath(__file__))
 
 
 class TestPackageClass:
-    def test_repr_string(self):
+    def test_repr_string(self) -> None:
         package = Package("foo")
         assert package.name == "foo"
         assert str(package) == "Package('foo')"
 
-    def test_is_subpackage(self):
+    def test_is_subpackage(self) -> None:
         package = Package("foo")
         assert package.is_subpackage is False
 
 
 class TestSpecFileParser:
-    def test_parse_perl_array_compare_spec(self):
+    def test_parse_perl_array_compare_spec(self) -> None:
         spec = Spec.from_file(os.path.join(CURRENT_DIR, "perl-Array-Compare.spec"))
         assert isinstance(spec, Spec)
 
@@ -33,7 +33,7 @@ class TestSpecFileParser:
         assert len(spec.build_requires) == 2
         assert spec.build_requires[0].line == "perl >= 1:5.6.0"
 
-    def test_parse_llvm_spec(self):
+    def test_parse_llvm_spec(self) -> None:
         spec = Spec.from_file(os.path.join(CURRENT_DIR, "llvm.spec"))
 
         assert spec.name == "llvm"
@@ -46,14 +46,14 @@ class TestSpecFileParser:
         assert len(spec.patches) == 1
         assert spec.patches[0] == "llvm-3.7.1-cmake-s390.patch"
 
-    def test_parse_only_base_package(self):
+    def test_parse_only_base_package(self) -> None:
         # spec file does not contain %package directive
         spec = Spec.from_file(os.path.join(CURRENT_DIR, "perl-Array-Compare.spec"))
         assert len(spec.packages) == 1
         assert spec.packages[0].name == "perl-Array-Compare"
         assert not spec.packages[0].is_subpackage
 
-    def test_parse_subpackages(self):
+    def test_parse_subpackages(self) -> None:
         # spec file contains four sub-packages and one base package
         spec = Spec.from_file(os.path.join(CURRENT_DIR, "llvm.spec"))
         assert len(spec.packages) == 5
@@ -62,7 +62,7 @@ class TestSpecFileParser:
             assert isinstance(package, Package)
             assert package.name.startswith("llvm")
 
-    def test_parse_subpackage_names(self):
+    def test_parse_subpackage_names(self) -> None:
         # spec file contains %package -n directive
         spec = Spec.from_file(os.path.join(CURRENT_DIR, "jsrdbg.spec"))
         assert len(spec.packages) == 3
@@ -72,7 +72,7 @@ class TestSpecFileParser:
         for name in expected:
             assert name in actual
 
-    def test_packages_dict_property(self):
+    def test_packages_dict_property(self) -> None:
         spec = Spec.from_file(os.path.join(CURRENT_DIR, "perl-Array-Compare.spec"))
         assert isinstance(spec.packages_dict, dict)
         assert len(spec.packages_dict) == len(spec.packages)
@@ -81,18 +81,18 @@ class TestSpecFileParser:
         assert isinstance(spec.packages_dict, dict)
         assert len(spec.packages_dict) == len(spec.packages)
 
-    def test_sources_dict_property(self):
+    def test_sources_dict_property(self) -> None:
         spec = Spec.from_file(os.path.join(CURRENT_DIR, "llvm.spec"))
         assert len(spec.sources_dict) == len(spec.sources)
         assert spec.sources_dict["Source0"] is spec.sources[0]
         assert spec.sources_dict["Source100"] is spec.sources[1]
 
-    def test_patches_dict_property(self):
+    def test_patches_dict_property(self) -> None:
         spec = Spec.from_file(os.path.join(CURRENT_DIR, "llvm.spec"))
         assert len(spec.patches_dict) == len(spec.patches)
         assert spec.patches_dict["Patch0"] is spec.patches[0]
 
-    def test_subpackage_tags(self):
+    def test_subpackage_tags(self) -> None:
         spec = Spec.from_file(os.path.join(CURRENT_DIR, "jsrdbg.spec"))
 
         # Summary: tag
@@ -101,7 +101,7 @@ class TestSpecFileParser:
         assert packages["jsrdbg-devel"].summary == "Header files, libraries and development documentation for %{name}"
         assert packages["jrdb"].summary == "A command line debugger client for %{name}"
 
-    def test_defines(self):
+    def test_defines(self) -> None:
         spec = Spec.from_file(os.path.join(CURRENT_DIR, "attica-qt5.spec"))
 
         # Check if they exist
@@ -114,7 +114,7 @@ class TestSpecFileParser:
         assert spec._libname == "KF5Attica"
         assert spec._tar_path == "5.31"
 
-    def test_replace_macro_that_is_tag_name(self):
+    def test_replace_macro_that_is_tag_name(self) -> None:
         """Test that we are able to replace macros which are in the tag list.
 
         See issue https://github.com/bkircher/python-rpm-spec/issues/33.
@@ -136,20 +136,20 @@ Version: %{version}
         )
         assert replace_macros(spec.version, spec) == "1.2.3"
 
-    def test_requirement_parsing(self):
+    def test_requirement_parsing(self) -> None:
         spec = Spec.from_file(os.path.join(CURRENT_DIR, "attica-qt5.spec"))
 
         assert spec.build_requires[0].name == "cmake"
         assert spec.build_requires[0].version == "3.0"
         assert spec.build_requires[0].operator == ">="
 
-    def test_subpackage_has_requires(self):
+    def test_subpackage_has_requires(self) -> None:
         spec = Spec.from_file(os.path.join(CURRENT_DIR, "git.spec"))
 
         core_package = spec.packages_dict["git-core"]
         assert len(core_package.requires) == 3
 
-    def test_subpackage_has_build_requires(self):
+    def test_subpackage_has_build_requires(self) -> None:
         """Make sure that Requires:, BuildRequires:, and so on exist on
         sub-packages even though they might be empty.
 
@@ -161,7 +161,7 @@ Version: %{version}
 
 
 class TestSpecClass:
-    def test_default_init(self):
+    def test_default_init(self) -> None:
         spec = Spec()
         assert spec.name is None
         assert spec.version is None
@@ -181,25 +181,25 @@ class TestSpecClass:
 
 
 class TestReplaceMacro:
-    def test_replace_macro_with_spec(self):
+    def test_replace_macro_with_spec(self) -> None:
         spec = Spec.from_file(os.path.join(CURRENT_DIR, "llvm.spec"))
         assert replace_macros(spec.sources[0], spec) == "http://llvm.org/releases/3.8.0/llvm-3.8.0.src.tar.xz"
         assert replace_macros(spec.sources[1], spec) == "llvm-config.h"
 
-    def test_replace_without_spec(self):
+    def test_replace_without_spec(self) -> None:
         s = "http://llvm.org/releases/%{version}/%{name}-%{version}.src.tar.xz"
         assert s == replace_macros(s, spec=None)
 
-    def test_replace_unknown_macro(self):
+    def test_replace_unknown_macro(self) -> None:
         s = "%{foobar}"
         assert s == replace_macros(s, spec=None)
 
-    def test_replace_macro_int_type_val(self):
+    def test_replace_macro_int_type_val(self) -> None:
         spec = Spec.from_file(os.path.join(CURRENT_DIR, "perl-Array-Compare.spec"))
         result = replace_macros("%{epoch}", spec)
         assert isinstance(result, str)
 
-    def test_replace_macro_twice(self):
+    def test_replace_macro_twice(self) -> None:
         spec = Spec.from_file(os.path.join(CURRENT_DIR, "jsrdbg.spec"))
         # pylint: disable=line-too-long
         assert (
@@ -207,7 +207,7 @@ class TestReplaceMacro:
             == "https://github.com/swojtasiak/jsrdbg/archive/26f9f2b27c04b4aec9cd67baaf9a0a206bbbd5c7.tar.gz#/jsrdbg-26f9f2b27c04b4aec9cd67baaf9a0a206bbbd5c7.tar.gz"
         )
 
-    def test_replace_user_defined_macro(self):
+    def test_replace_user_defined_macro(self) -> None:
         spec = Spec.from_string(
             """
 Name:           foo
@@ -218,7 +218,7 @@ Version:        2
         s = "%{name}/%{version}/%{var}"
         assert replace_macros(s, spec) == "foo/2/bar"
 
-    def test_replace_macro_with_negative_conditional(self):
+    def test_replace_macro_with_negative_conditional(self) -> None:
         spec = Spec.from_file(os.path.join(CURRENT_DIR, "git.spec"))
 
         assert (
@@ -229,7 +229,7 @@ Version:        2
             == "https://www.kernel.org/pub/software/scm/git/git-2.15.1.tar.xz"
         )
 
-    def test_replace_macro_with_positive_conditional(self):
+    def test_replace_macro_with_positive_conditional(self) -> None:
         spec = Spec.from_string(
             """
 Name:           git
@@ -246,7 +246,7 @@ Version:        2.15.1
             == "https://www.kernel.org/pub/software/scm/git/testing/git-2.15.1.rc0.tar.xz"
         )
 
-    def test_replace_macro_with_leading_exclamation_point(self):
+    def test_replace_macro_with_leading_exclamation_point(self) -> None:
         spec = Spec.from_string(
             """
 Name:           git
