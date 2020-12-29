@@ -5,7 +5,7 @@
 
 python-rpm-spec is a Python library for parsing RPM spec files.
 
-tl;dr
+*tl;dr*
 If you want to quickly parse a spec file on the command line you might want to
 give `rpmspec --parse` a try.
 
@@ -114,7 +114,7 @@ $ sudo dnf install -y python3-rpm-spec  # Install the package
 
 ## Dependencies
 
-Except Python 3 no extra dependencies are required. No Python 2, sorry.
+Except Python 3 no extra dependencies are required.
 
 ## Current status
 
@@ -131,8 +131,9 @@ $ git clone https://github.com/bkircher/python-rpm-spec.git  # Clone the repo
 $ cd python-rpm-spec  # Change into the source directory
 $ mkdir .venv && python3 -m venv .venv  # Create a virtual environment
 $ source .venv/bin/activate  # Activate it
-$ pip install pytest  # Install py.test
+$ pip install -r dev-requirements.txt  # Install dependencies for development
 $ pytest  # Execute all tests
+$ pytest --mypy  # Run the type checker
 ```
 
 ## Further references
