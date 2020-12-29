@@ -61,7 +61,9 @@ class _NameValue(_Tag):
     def __init__(self, name: str, pattern_obj: re.Pattern, attr_type: typing.Optional[type] = None) -> None:
         super().__init__(name, pattern_obj, attr_type if attr_type else str)
 
-    def update_impl(self, spec_obj: "Spec", context: typing.Dict[str, typing.Any], match_obj: re.Match, line: str) -> typing.Tuple["Spec", dict]:
+    def update_impl(
+        self, spec_obj: "Spec", context: typing.Dict[str, typing.Any], match_obj: re.Match, line: str
+    ) -> typing.Tuple["Spec", dict]:
         target_obj = _Tag.current_target(spec_obj, context)
         value = match_obj.group(1)
 
@@ -95,7 +97,9 @@ class _List(_Tag):
     def __init__(self, name: str, pattern_obj: re.Pattern) -> None:
         super().__init__(name, pattern_obj, list)
 
-    def update_impl(self, spec_obj: "Spec", context: typing.Dict[str, typing.Any], match_obj: re.Match, line: str) -> typing.Tuple["Spec", dict]:
+    def update_impl(
+        self, spec_obj: "Spec", context: typing.Dict[str, typing.Any], match_obj: re.Match, line: str
+    ) -> typing.Tuple["Spec", dict]:
         target_obj = _Tag.current_target(spec_obj, context)
 
         if not hasattr(target_obj, self.name):
@@ -156,7 +160,9 @@ class _ListAndDict(_Tag):
     def __init__(self, name: str, pattern_obj: re.Pattern) -> None:
         super().__init__(name, pattern_obj, list)
 
-    def update_impl(self, spec_obj: "Spec", context: typing.Dict[str, typing.Any], match_obj: re.Match, line: str) -> typing.Tuple["Spec", dict]:
+    def update_impl(
+        self, spec_obj: "Spec", context: typing.Dict[str, typing.Any], match_obj: re.Match, line: str
+    ) -> typing.Tuple["Spec", dict]:
         source_name, value = match_obj.groups()
         dictionary = getattr(spec_obj, "{}_dict".format(self.name))
         dictionary[source_name] = value
@@ -314,6 +320,7 @@ class Package:
 
 InitializerDictT = typing.Optional[typing.Dict[str, typing.Any]]
 
+
 class Spec:
     """Represents a single spec file."""
 
@@ -368,7 +375,6 @@ class Spec:
         for line in string.splitlines():
             spec, parse_context = _parse(spec, parse_context, line)
         return spec
-
 
 
 def replace_macros(string: str, spec: typing.Dict[str, typing.Any] = None) -> str:
