@@ -21,7 +21,12 @@ jobs:
         uses: actions/setup-python@v2
         with:
           python-version: ${{ matrix.python-version }}
-      - name: Test
+      - name: Run unit tests
         run: |
           pip install pytest coverage pytest-cov
-          pytest --cov=pyrpm.spec tests
+          pytest --cov=pyrpm.spec
+
+      - name: Check for type errors
+        run: |
+          pip install pytest pytest-mypy
+          pytest --mypy
