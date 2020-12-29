@@ -382,15 +382,13 @@ def replace_macros(string: str, spec: Spec) -> str:
 
     For example: a string '%{name}-%{version}.tar.gz' will be transformed to 'foo-2.0.tar.gz'.
 
-    :param string A string containing macros that you want to be replaced
-    :param spec An optional spec file. If given, definitions in that spec
-    file will be used to replace macros.
+    :param string A string containing macros that you want to be replaced.
+    :param spec A Spec object. Definitions in that spec file will be used to replace macros.
 
     :return A string where all macros in given input are substituted as good as possible.
 
     """
-    if spec:
-        assert isinstance(spec, Spec)
+    assert isinstance(spec, Spec)
 
     def _is_conditional(macro: str) -> bool:
         return macro.startswith("?") or macro.startswith("!")

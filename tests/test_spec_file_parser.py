@@ -1,5 +1,7 @@
 import os.path
 
+import pytest
+
 from pyrpm.spec import Package, Spec, replace_macros
 
 CURRENT_DIR = os.path.dirname(os.path.realpath(__file__))
@@ -181,18 +183,18 @@ class TestSpecClass:
 
 
 class TestReplaceMacro:
-    def test_replace_macro_with_spec(self) -> None:
-        spec = Spec.from_file(os.path.join(CURRENT_DIR, "llvm.spec"))
-        assert replace_macros(spec.sources[0], spec) == "http://llvm.org/releases/3.8.0/llvm-3.8.0.src.tar.xz"
-        assert replace_macros(spec.sources[1], spec) == "llvm-config.h"
+    def test_replace_macro_without_spec_raises(self) -> None:
+        """Ensure that caller passes a spec file."""
 
-    def test_replace_without_spec(self) -> None:
-        s = "http://llvm.org/releases/%{version}/%{name}-%{version}.src.tar.xz"
-        assert s == replace_macros(s, spec=None)
+        with pytest.raises(AssertionError):
+            replace_macros("something something", spec=None)
 
     def test_replace_unknown_macro(self) -> None:
+        """Ensure that string that do not have a definition in the spec file are left intact."""
+
+        spec = Spec.from_file(os.path.join(CURRENT_DIR, "perl-Array-Compare.spec"))
         s = "%{foobar}"
-        assert s == replace_macros(s, spec=None)
+        assert s == replace_macros(s, spec=spec)
 
     def test_replace_macro_int_type_val(self) -> None:
         spec = Spec.from_file(os.path.join(CURRENT_DIR, "perl-Array-Compare.spec"))
