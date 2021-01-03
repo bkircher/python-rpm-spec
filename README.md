@@ -129,7 +129,7 @@ If you want to hack on this module you could start with following recipe:
 ```sh
 $ git clone https://github.com/bkircher/python-rpm-spec.git  # Clone the repo
 $ cd python-rpm-spec  # Change into the source directory
-$ mkdir .venv && python3 -m venv .venv  # Create a virtual environment
+$ python3 -m venv .venv  # Create a virtual environment
 $ source .venv/bin/activate  # Activate it
 $ pip install -r dev-requirements.txt  # Install dependencies for development
 $ pytest  # Execute all tests
