@@ -11,8 +11,12 @@ add support for the missing pieces.
 """
 
 import re
+import sys
 from abc import ABCMeta, abstractmethod
 from typing import Any, Dict, List, Optional, Union, Tuple, Type, cast
+if sys.version_info < (3, 7):
+    re.Pattern = Any
+    re.Match = Any
 
 __all__ = ["Spec", "replace_macros", "Package"]
 
