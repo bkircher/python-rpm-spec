@@ -315,13 +315,10 @@ class Package:
         return "Package('{}')".format(self.name)
 
 
-InitializerDictT = Optional[Dict[str, Any]]
-
-
 class Spec:
     """Represents a single spec file."""
 
-    def __init__(self, initial: InitializerDictT = None) -> None:
+    def __init__(self) -> None:
         for tag in _tags:
             if tag.attr_type is list:
                 setattr(self, tag.name, tag.attr_type())
