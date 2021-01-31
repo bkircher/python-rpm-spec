@@ -15,6 +15,7 @@ import sys
 from warnings import warn
 from abc import ABCMeta, abstractmethod
 from typing import Any, Dict, List, Optional, Union, Tuple, Type, cast
+
 if sys.version_info < (3, 7):
     re.Pattern = Any
     re.Match = Any
@@ -78,12 +79,13 @@ class _NameValue(_Tag):
         setattr(target_obj, self.name, self.attr_type(value))
         return spec_obj, context
 
+
 class _SetterMacroDef(_Tag):
     """Parse global macro definitions."""
 
     def __init__(self, name, pattern_obj):
         super().__init__(name, pattern_obj, str)
-    
+
     def get_namespace(self, spec_obj, context):
         raise NotImplementedError()
 
@@ -92,11 +94,13 @@ class _SetterMacroDef(_Tag):
         setattr(self.get_namespace(spec_obj, context), name, str(value))
         return spec_obj, context
 
+
 class _GlobalMacroDef(_SetterMacroDef):
     """Parse global macro definitions."""
 
     def get_namespace(self, spec_obj, context):
         return spec_obj
+
 
 class _LocalMacroDef(_SetterMacroDef):
     """Parse define macro definitions."""
@@ -231,10 +235,8 @@ _tags = [
     _List("obsoletes", re_tag_compile(r"^Obsoletes\s*:\s*(.+)")),
     _List("provides", re_tag_compile(r"^Provides\s*:\s*(.+)")),
     _List("packages", re.compile(r"^%package\s+(\S+)")),
-    
     _MacroDef("define", re.compile(r"^%define\s+(\S+)\s+(\S+)")),
     _MacroDef("global", re.compile(r"^%global\s+(\S+)\s+(\S+)")),
-    
     _DummyMacroDef("dummy", re.compile(r"^%[a-z_]+\b.*$")),
 ]
 

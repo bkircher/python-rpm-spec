@@ -231,7 +231,8 @@ Version:        2
 
         assert (
             replace_macros(
-                "https://www.kernel.org/pub/software/scm/git/%{?rcrev:testing/}%{name}-%{version}%{?rcrev}.tar.xz", spec,
+                "https://www.kernel.org/pub/software/scm/git/%{?rcrev:testing/}%{name}-%{version}%{?rcrev}.tar.xz",
+                spec,
             )
             == "https://www.kernel.org/pub/software/scm/git/git-2.15.1.tar.xz"
         )
@@ -247,7 +248,8 @@ Version:        2.15.1
 
         assert (
             replace_macros(
-                "https://www.kernel.org/pub/software/scm/git/%{?rcrev:testing/}%{name}-%{version}%{?rcrev}.tar.xz", spec,
+                "https://www.kernel.org/pub/software/scm/git/%{?rcrev:testing/}%{name}-%{version}%{?rcrev}.tar.xz",
+                spec,
             )
             == "https://www.kernel.org/pub/software/scm/git/testing/git-2.15.1.rc0.tar.xz"
         )
@@ -261,6 +263,9 @@ Version:        2.15.1
         )
 
         assert (
-            replace_macros("https://www.kernel.org/pub/software/scm/git/%{!stable:testing/}%{name}-%{version}.tar.xz", spec,)
+            replace_macros(
+                "https://www.kernel.org/pub/software/scm/git/%{!stable:testing/}%{name}-%{version}.tar.xz",
+                spec,
+            )
             == "https://www.kernel.org/pub/software/scm/git/testing/git-2.15.1.tar.xz"
         )
