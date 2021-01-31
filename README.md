@@ -26,6 +26,17 @@ spec file.
 * No extra dependencies other than Python 3
 * Available on all platforms, parse spec files on Windows
 
+## Supported Python versions
+
+All [current Python branches](https://devguide.python.org/#status-of-python-branches) are supported.
+
+| Python Version | Supported Until |
+| :------------- | --------------: |
+| 3.9            | TBD             |
+| 3.8            | TBD             |
+| 3.7            | 2023-06-27      |
+| 3.6            | 2021-12-23      |
+
 ## Examples
 
 This is how you access a spec file's various definitions:
