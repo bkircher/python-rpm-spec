@@ -83,13 +83,13 @@ class _NameValue(_Tag):
 class _SetterMacroDef(_Tag):
     """Parse global macro definitions."""
 
-    def __init__(self, name, pattern_obj):
+    def __init__(self, name: str, pattern_obj: re.Pattern) -> None:
         super().__init__(name, pattern_obj, str)
 
     def get_namespace(self, spec_obj, context):
         raise NotImplementedError()
 
-    def update_impl(self, spec_obj, context, match_obj, line):
+    def update_impl(self, spec_obj: "Spec", context: Dict[str, Any], match_obj: re.Match, line: str) -> Tuple["Spec", dict]:
         name, value = match_obj.groups()
         setattr(self.get_namespace(spec_obj, context), name, str(value))
         return spec_obj, context
@@ -98,14 +98,14 @@ class _SetterMacroDef(_Tag):
 class _GlobalMacroDef(_SetterMacroDef):
     """Parse global macro definitions."""
 
-    def get_namespace(self, spec_obj, context):
+    def get_namespace(self, spec_obj: "Spec", context: Dict[str, Any]) -> "Spec":
         return spec_obj
 
 
 class _LocalMacroDef(_SetterMacroDef):
     """Parse define macro definitions."""
 
-    def get_namespace(self, spec_obj, context):
+    def get_namespace(self, spec_obj: "Spec", context: Dict[str, Any]) -> "Spec":
         return context["current_subpackage"]
 
 
