@@ -14,6 +14,8 @@ import re
 import sys
 from warnings import warn
 from abc import ABCMeta, abstractmethod
+import argparse
+from functools import partial
 from typing import Any, Dict, List, Optional, Union, Tuple, Type, cast
 
 if sys.version_info < (3, 7):
@@ -24,6 +26,8 @@ __all__ = ["Spec", "replace_macros", "Package"]
 
 
 class _Tag(metaclass=ABCMeta):
+    __slots__ = ("name", "pattern_obj", "attr_type")
+
     def __init__(self, name: str, pattern_obj: re.Pattern, attr_type: Type[Any]) -> None:
         self.name = name
         self.pattern_obj = pattern_obj
@@ -60,6 +64,9 @@ class _Tag(metaclass=ABCMeta):
             target_obj = context["current_subpackage"]
         return target_obj
 
+    def __repr__(self):
+        return self.__class__.__name__ + "<" + ", ".join(k + "=" + repr(getattr(self, k)) for k in __class__.__slots__) + ">"
+
 
 class _NameValue(_Tag):
     """Parse a simple name → value tag."""
@@ -91,7 +98,7 @@ class _SetterMacroDef(_Tag):
 
     def update_impl(self, spec_obj: "Spec", context: Dict[str, Any], match_obj: re.Match, line: str) -> Tuple["Spec", dict]:
         name, value = match_obj.groups()
-        setattr(self.get_namespace(spec_obj, context), name, str(value))
+        self.get_namespace(spec_obj, context)[name] = str(value)
         return spec_obj, context
 
 
@@ -121,7 +128,88 @@ class _MacroDef(_Tag):
         if name not in _tag_names:
             # Also make available as attribute of spec object
             setattr(spec_obj, name, str(value))
+        context["line_processor"] = None
         return spec_obj, context
+
+
+class _DummyMacroDef(_Tag):
+    """Parse global macro definitions."""
+
+    def __init__(self, name: str, pattern_obj: re.Pattern) -> None:
+        super().__init__(name, pattern_obj, str)
+
+    def update_impl(self, spec_obj: "Spec", context: Dict[str, Any], match_obj: re.Match, line: str) -> Any:
+        context["line_processor"] = None
+        warn("Unknown macro: " + line)
+        return spec_obj, context
+
+
+class _SectionStartMacrodef(_Tag):
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-f', action='store')
+    parser.add_argument('-n', action='store')
+    parser.add_argument('content', nargs='*')
+   
+    def __init__(self, name: str) -> None:
+        super().__init__(name, re.compile(r"^%("+name+")(?:\s+(.+))?$"), list)
+    
+    def line_processor(propName, context: Dict[str, Any], line: str) -> None:
+        getattr(context["current_subpackage"], propName).append(line)
+
+    def update_impl(self, spec_obj: "Spec", context: Dict[str, Any], match_obj: re.Match, line: str) -> Any:
+        macroName = match_obj.group(1)
+        commandLine = match_obj.group(2)
+        if commandLine:
+            res, rest = self.__class__.parser.parse_known_args(commandLine.split(" "))
+            if rest:
+                raise ValueError(rest)
+            spkg = context["current_subpackage"]
+            pkgName = None
+            if res.n:
+                pkgName = res.n
+            #elif not res.f:
+            #    if len(res.content) != 1:
+            #        raise ValueError()
+            #    pkgName = "-".join((spec_obj.name, res.content[0]))
+
+            if pkgName:
+                spkg = context["current_subpackage"] = spec_obj.packages_dict[pkgName]
+        else:
+            res = None
+            context["current_subpackage"] = spec_obj
+ 
+        if res:
+            prop = getattr(spkg, self.name)
+            if res.f:
+                try:
+                    f = Path(res.f)
+                    for l in f.splitlines():
+                        l = l.strip()
+                        prop.append(f)
+                except:
+                    warn("File ignored as nonexistent: " + res.f)
+            for f in res.content:
+                prop.append(f)
+        else:
+            context["line_processor"] = partial(self.__class__.line_processor, self.name)
+        
+        return spec_obj, context
+
+
+class _InSectionMacroProp(_Tag):
+    def __init__(self, name: str, pattern_obj: Optional[re.Pattern] = None) -> None:
+        if pattern_obj is None:
+            pattern_obj = re.compile(r"^%("+name+")(?:\s+(.+))?$")
+        super().__init__(name, pattern_obj, list)
+
+    def update_impl(self, spec_obj: "Spec", context: Dict[str, Any], match_obj: re.Match, line: str) -> Tuple["Spec", dict]:
+        macroName = match_obj.group(1)
+        commandLine = match_obj.group(2)
+        spkg = context["current_subpackage"]
+        prop = getattr(spkg, self.name)
+        prop.append(commandLine)
+        return spec_obj, context
+
 
 
 class _List(_Tag):
@@ -131,6 +219,7 @@ class _List(_Tag):
         super().__init__(name, pattern_obj, list)
 
     def update_impl(self, spec_obj: "Spec", context: Dict[str, Any], match_obj: re.Match, line: str) -> Tuple["Spec", dict]:
+        context["line_processor"] = False
         target_obj = _Tag.current_target(spec_obj, context)
 
         if not hasattr(target_obj, self.name):
@@ -192,6 +281,7 @@ class _ListAndDict(_Tag):
         super().__init__(name, pattern_obj, list)
 
     def update_impl(self, spec_obj: "Spec", context: Dict[str, Any], match_obj: re.Match, line: str) -> Tuple["Spec", dict]:
+        context["line_processor"] = False
         source_name, value = match_obj.groups()
         dictionary = getattr(spec_obj, "{}_dict".format(self.name))
         dictionary[source_name] = value
@@ -199,6 +289,18 @@ class _ListAndDict(_Tag):
         getattr(target_obj, self.name).append(value)
         return spec_obj, context
 
+def elvis(*args):
+    try:
+        return next(filter(None, *args), None)
+    except:
+        pass
+
+def dict_elvis(prop: str, *args):
+    for o in args:
+        try:
+            return getattr(o, prop)
+        except:
+            pass
 
 def re_tag_compile(tag):
     return re.compile(tag, re.IGNORECASE)
@@ -237,6 +339,25 @@ _tags = [
     _List("packages", re.compile(r"^%package\s+(\S+)")),
     _MacroDef("define", re.compile(r"^%define\s+(\S+)\s+(\S+)")),
     _MacroDef("global", re.compile(r"^%global\s+(\S+)\s+(\S+)")),
+    
+    _SectionStartMacrodef("install"),
+    _InSectionMacroProp("pre"),
+    _InSectionMacroProp("post"),
+    _InSectionMacroProp("postun"),
+    
+    _SectionStartMacrodef("files"),
+    _InSectionMacroProp("dir"),
+    _InSectionMacroProp("exclude"),
+    _InSectionMacroProp("doc"),
+    _InSectionMacroProp("config", re.compile(r"^%(config)(?:\(noreplace\))?(?:\s*(.+))?$")),
+    
+    _SectionStartMacrodef("clean"),
+    _SectionStartMacrodef("build"),
+    _SectionStartMacrodef("prep"),
+    _SectionStartMacrodef("description"),
+    _SectionStartMacrodef("changelog"),
+
+    
     _DummyMacroDef("dummy", re.compile(r"^%[a-z_]+\b.*$")),
 ]
 
@@ -246,14 +367,84 @@ _macro_pattern = re.compile(r"%{(\S+?)\}")
 
 
 def _parse(spec_obj: "Spec", context: Dict[str, Any], line: str) -> Any:
+    actually_replaced = 1
+    def line_replacer(m):
+        nonlocal actually_replaced
+        vn = m.group(1)
+        #ToDo: replace_macros
+        if hasattr(spec_obj, vn):
+            actually_replaced += 1
+            return spec_obj[vn]
+        else:
+            return m.group(0)
+
+    while actually_replaced>0:
+        actually_replaced = 0
+        line = replace_macros(line, spec_obj)
+        line, _ = variable_rx.subn(line_replacer, line)
+    
     for tag in _tags:
         match = tag.test(line)
         if match:
             return tag.update(spec_obj, context, match, line)
+    if context["line_processor"]:
+        context["line_processor"](context, line)
     return spec_obj, context
 
 
-class Requirement:
+class SemiSchemedMeta(ABCMeta):
+    __slots__ = ()
+
+    def __new__(cls: Type["ProtoBundleMeta"], className: str, parents: Tuple[type, ...], attrs: Dict[str, Any], *args, **kwargs) -> Type["_ProtoBundle"]:
+        attrs = type(attrs)(attrs)
+
+        sv = attrs.get("SLOTTED_VALUES", None)
+        if sv:
+            attrs["SLOTTED_VALUES"] = set(sv)
+            attrs["__slots__"] = tuple(attrs["__slots__"]) + tuple(sv)
+
+        res = super().__new__(cls, className, parents, attrs, *args, **kwargs)
+        return res
+
+
+class SemiSchemed(metaclass=SemiSchemedMeta):
+    __slots__ = ("kvpairs",)
+    SLOTTED_VALUES = None
+
+    def __init__(self):
+        self.__class__.kvpairs.__set__(self, {})
+        if self.__class__.SLOTTED_VALUES:
+            for el in self.__class__.SLOTTED_VALUES:
+                getattr(self.__class__, el).__set__(self, None)
+
+    def __getitem__(self, k):
+        if self.__class__.SLOTTED_VALUES and k in self.__class__.SLOTTED_VALUES:
+            return getattr(self.__class__, k).__get__(self)
+        else:
+            return self.__class__.kvpairs.__get__(self)[k]
+
+    def __setitem__(self, k, v):
+        if self.__class__.SLOTTED_VALUES and k in self.__class__.SLOTTED_VALUES:
+            return getattr(self.__class__, k).__set__(self, v)
+        else:
+            self.__class__.kvpairs.__get__(self)[k] = v
+
+    def __getattr__(self, k):
+        try:
+            return self[k]
+        except KeyError as e:
+            raise AttributeError(k) from e
+
+    def __setattr__(self, k, v):
+        try:
+            self[k] = v
+        except KeyError as e:
+            raise AttributeError(k) from e
+
+    def __repr__(self):
+        return self.__class__.__name__ + repr(self.kvpairs)
+
+class Requirement(SemiSchemed):
     """Represents a single requirement or build requirement in an RPM spec file.
 
     Each spec file contains one or more requirements or build requirements.
@@ -283,6 +474,7 @@ class Requirement:
     expr = re.compile(r"(.*?)\s+([<>]=?|=)\s+(\S+)")
 
     def __init__(self, name: str) -> None:
+        super().__init__()
         assert isinstance(name, str)
         self.line = name
         self.name: str
@@ -302,7 +494,7 @@ class Requirement:
         return self.line
 
 
-class Package:
+class Package(SemiSchemed):
     """Represents a single package in a RPM spec file.
 
     Each spec file describes at least one package and can contain one or more subpackages (described
@@ -345,15 +537,10 @@ class Package:
 
     def __init__(self, name: str) -> None:
         assert isinstance(name, str)
+        super().__init__()
 
         for tag in _tags:
-            if tag.attr_type is list and tag.name in [
-                "build_requires",
-                "requires",
-                "conflicts",
-                "obsoletes",
-                "provides",
-            ]:
+            if tag.attr_type is list:
                 setattr(self, tag.name, tag.attr_type())
 
         self.name = name
@@ -363,22 +550,30 @@ class Package:
         return "Package('{}')".format(self.name)
 
 
-class Spec:
+variable_rx = re.compile("\%\{([a-zA-Z0-9_]+)\}")
+InitializerDictT = Optional[Dict[str, Any]]
+
+class Spec(SemiSchemed):
     """Represents a single spec file."""
 
-    def __init__(self) -> None:
+    __slots__ = ("macros",)
+    SLOTTED_VALUES = ("name", "packages", "version", "sources_dict", "patches_dict")
+
+    def __init__(self, initial: Dict[str, Any]=None):
+        super().__init__()
+
         for tag in _tags:
             if tag.attr_type is list:
-                setattr(self, tag.name, tag.attr_type())
+                self[tag.name] = tag.attr_type()
             else:
-                setattr(self, tag.name, None)
-
+                self[tag.name] = None
         self.sources_dict: Dict[str, str] = {}
         self.patches_dict: Dict[str, str] = {}
         self.macros: Dict[str, str] = {}
-
         self.name: Optional[str]
         self.packages: List[Package] = []
+        if initial is not None:
+            self.kvpairs.update(initial)
 
     @property
     def packages_dict(self) -> Dict[str, Package]:
@@ -393,33 +588,38 @@ class Spec:
         return dict(zip([package.name for package in self.packages], self.packages))
 
     @staticmethod
-    def from_file(filename: str) -> "Spec":
+    def from_file(filename: str, initial: InitializerDictT = None) -> "Spec":
         """Creates a new Spec object from a given file.
 
         :param filename: The path to the spec file.
         :return: A new Spec object.
         """
 
-        spec = Spec()
+        spec = Spec(initial)
         with open(filename, "r", encoding="utf-8") as f:
-            parse_context = {"current_subpackage": None}
+            parse_context = _init_context(spec)
             for line in f:
                 spec, parse_context = _parse(spec, parse_context, line)
         return spec
 
     @staticmethod
-    def from_string(string: str) -> "Spec":
+    def from_string(string: str, initial: InitializerDictT = None) -> "Spec":
         """Creates a new Spec object from a given string.
 
         :param string: The contents of a spec file.
         :return: A new Spec object.
         """
 
-        spec = Spec()
-        parse_context = {"current_subpackage": None}
+        spec = Spec(initial)
+
+        parse_context = _init_context(spec)
         for line in string.splitlines():
             spec, parse_context = _parse(spec, parse_context, line)
         return spec
+
+
+def _init_context(spec: Spec) -> Dict[str, Union[Spec, None]]:
+    return {"current_subpackage": spec, "line_processor": None}
 
 
 def replace_macros(string: str, spec: Spec) -> str:
