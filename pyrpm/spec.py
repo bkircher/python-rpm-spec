@@ -179,6 +179,10 @@ class _List(_Tag):
             for val in values:
                 requirement = Requirement(val)
                 getattr(target_obj, self.name).append(requirement)
+        elif self.name in [
+            "description"        # could gather any kind of multi-line field
+        ]:
+            context["description"] = ""
         else:
             getattr(target_obj, self.name).append(value)
 
@@ -222,6 +226,7 @@ _tags = [
     _NameValue("epoch", re_tag_compile(r"^Epoch\s*:\s*(\S+)")),
     _NameValue("release", re_tag_compile(r"^Release\s*:\s*(\S+)")),
     _NameValue("summary", re_tag_compile(r"^Summary\s*:\s*(.+)")),
+   # _NameValue("description", re_tag_compile(r"^Summary\s*:\s*(.+)")),
     _NameValue("license", re_tag_compile(r"^License\s*:\s*(.+)")),
     _NameValue("group", re_tag_compile(r"^Group\s*:\s*(.+)")),
     _NameValue("url", re_tag_compile(r"^URL\s*:\s*(\S+)")),
@@ -235,6 +240,7 @@ _tags = [
     _List("obsoletes", re_tag_compile(r"^Obsoletes\s*:\s*(.+)")),
     _List("provides", re_tag_compile(r"^Provides\s*:\s*(.+)")),
     _List("packages", re.compile(r"^%package\s+(\S+)")),
+    _List("description", re.compile(r"^%description\s*(\S*)")),
     _MacroDef("define", re.compile(r"^%define\s+(\S+)\s+(\S+)")),
     _MacroDef("global", re.compile(r"^%global\s+(\S+)\s+(\S+)")),
     _DummyMacroDef("dummy", re.compile(r"^%[a-z_]+\b.*$")),
@@ -249,7 +255,13 @@ def _parse(spec_obj: "Spec", context: Dict[str, Any], line: str) -> Any:
     for tag in _tags:
         match = tag.test(line)
         if match:
+            if "description" in context:
+                context.pop("description", None)
             return tag.update(spec_obj, context, match, line)
+    if "description" in context:
+        target_obj = _Tag.current_target(spec_obj, context)
+        getattr(target_obj, "description").append(line)
+
     return spec_obj, context
 
 
@@ -353,6 +365,7 @@ class Package:
                 "conflicts",
                 "obsoletes",
                 "provides",
+                "description",
             ]:
                 setattr(self, tag.name, tag.attr_type())
 
