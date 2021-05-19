@@ -68,6 +68,9 @@ class _NameValue(_Tag):
         super().__init__(name, pattern_obj, cast(Type[Any], attr_type if attr_type else str))
 
     def update_impl(self, spec_obj: "Spec", context: Dict[str, Any], match_obj: re.Match, line: str) -> Tuple["Spec", dict]:
+        if self.name == "changelog":
+            context["current_subpackage"] = None
+
         target_obj = _Tag.current_target(spec_obj, context)
         value = match_obj.group(1)
 
@@ -76,7 +79,14 @@ class _NameValue(_Tag):
             spec_obj.packages = []
             spec_obj.packages.append(Package(value))
 
-        setattr(target_obj, self.name, self.attr_type(value))
+        if self.name in [
+            "description",
+            "changelog"
+        ]:
+            context["multiline"] = self.name
+        else:
+            setattr(target_obj, self.name, self.attr_type(value))
+
         return spec_obj, context
 
 
@@ -222,6 +232,8 @@ _tags = [
     _NameValue("epoch", re_tag_compile(r"^Epoch\s*:\s*(\S+)")),
     _NameValue("release", re_tag_compile(r"^Release\s*:\s*(\S+)")),
     _NameValue("summary", re_tag_compile(r"^Summary\s*:\s*(.+)")),
+    _NameValue("description", re_tag_compile(r"^%description\s*(\S*)")),
+    _NameValue("changelog", re_tag_compile(r"^%changelog\s*(\S*)")),
     _NameValue("license", re_tag_compile(r"^License\s*:\s*(.+)")),
     _NameValue("group", re_tag_compile(r"^Group\s*:\s*(.+)")),
     _NameValue("url", re_tag_compile(r"^URL\s*:\s*(\S+)")),
@@ -249,7 +261,16 @@ def _parse(spec_obj: "Spec", context: Dict[str, Any], line: str) -> Any:
     for tag in _tags:
         match = tag.test(line)
         if match:
+            if "multiline" in context:
+                context.pop("multiline", None)
             return tag.update(spec_obj, context, match, line)
+    if "multiline" in context:
+        target_obj = _Tag.current_target(spec_obj, context)
+        previous_txt = getattr(target_obj, context["multiline"], "")
+        if previous_txt is None:
+            previous_txt = ""
+        setattr(target_obj, context["multiline"], str(previous_txt) + line)
+
     return spec_obj, context
 
 
@@ -355,6 +376,10 @@ class Package:
                 "provides",
             ]:
                 setattr(self, tag.name, tag.attr_type())
+            elif tag.name in [
+                "description",
+            ]:
+                setattr(self, tag.name, None)
 
         self.name = name
         self.is_subpackage = False
