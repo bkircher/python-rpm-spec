@@ -2,8 +2,9 @@
 
 ## UNRELEASED
 
-* Added type annotations for tools like mypy, your IDE, and your brain (Thanks [@KOLANICH](https://github.com/KOLANICH)).
+* Add type annotations for tools like mypy, your IDE, and your brain (Thanks [@KOLANICH](https://github.com/KOLANICH)).
 * replace_macro now always expects a Spec instance as second argument. Does not make much sense without.
+* Add support for parsing %description and %changelog (see PR [#42](https://github.com/bkircher/python-rpm-spec/pull/42)).
 
 ## 0.10 (2020-09-19)
 
