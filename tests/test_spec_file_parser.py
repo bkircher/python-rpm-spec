@@ -191,7 +191,7 @@ class TestSpecClass:
 
 class TestReplaceMacro:
     def test_replace_macro_without_spec_raises(self) -> None:
-        """Ensure that caller passes a spec file."""
+        """Make sure to assert that caller passes a spec file."""
 
         with pytest.raises(AssertionError):
             replace_macros("something something", spec=None)
