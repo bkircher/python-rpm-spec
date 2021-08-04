@@ -83,10 +83,7 @@ class _NameValue(_Tag):
             spec_obj.packages = []
             spec_obj.packages.append(Package(value))
 
-        if self.name in [
-            "description",
-            "changelog"
-        ]:
+        if self.name in ["description", "changelog"]:
             context["multiline"] = self.name
         else:
             setattr(target_obj, self.name, self.attr_type(value))
@@ -219,7 +216,7 @@ class _SplitValue(_NameValue):
 
     def __init__(self, name: str, pattern_obj: re.Pattern, sep: str = None) -> None:
         super().__init__(name, pattern_obj)
-        self.name_list = '%s_list' % name
+        self.name_list = "%s_list" % name
         self.sep = sep
 
     def update_impl(self, spec_obj: "Spec", context: Dict[str, Any], match_obj: re.Match, line: str) -> Tuple["Spec", dict]:
@@ -231,6 +228,7 @@ class _SplitValue(_NameValue):
         setattr(target_obj, self.name_list, value)
 
         return spec_obj, context
+
 
 def re_tag_compile(tag):
     return re.compile(tag, re.IGNORECASE)
