@@ -31,9 +31,12 @@ class TestSpecFileParser:
         assert spec.epoch == "1"
 
         assert spec.version == "1.16"
-        assert spec.buildarch == "noarch"
         assert len(spec.build_requires) == 2
         assert spec.build_requires[0].line == "perl >= 1:5.6.0"
+
+        assert spec.buildarch == "noarch"
+        assert spec.excludearch == "alpha"
+        assert spec.exclusivearch == "i386 x86_64"
 
     def test_parse_llvm_spec(self) -> None:
         spec = Spec.from_file(os.path.join(CURRENT_DIR, "llvm.spec"))
