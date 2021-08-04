@@ -210,6 +210,24 @@ class _ListAndDict(_Tag):
         return spec_obj, context
 
 
+class _SplitValue(_NameValue):
+    """Parse a (name->value) tag, and at the same time split the tag to a list."""
+
+    def __init__(self, name: str, pattern_obj: re.Pattern, sep: str = None) -> None:
+        super().__init__(name, pattern_obj)
+        self.name_list = '%s_list' % name
+        self.sep = sep
+
+    def update_impl(self, spec_obj: "Spec", context: Dict[str, Any], match_obj: re.Match, line: str) -> Tuple["Spec", dict]:
+        super().update_impl(spec_obj, context, match_obj, line)
+
+        target_obj = _Tag.current_target(spec_obj, context)
+        value = getattr(target_obj, self.name)
+        value = value.split(self.sep)
+        setattr(target_obj, self.name_list, value)
+
+        return spec_obj, context
+
 def re_tag_compile(tag):
     return re.compile(tag, re.IGNORECASE)
 
@@ -238,9 +256,9 @@ _tags = [
     _NameValue("group", re_tag_compile(r"^Group\s*:\s*(.+)")),
     _NameValue("url", re_tag_compile(r"^URL\s*:\s*(\S+)")),
     _NameValue("buildroot", re_tag_compile(r"^BuildRoot\s*:\s*(\S+)")),
-    _NameValue("buildarch", re_tag_compile(r"^BuildArch\s*:\s*(\S+)")),
-    _NameValue("excludearch", re_tag_compile(r"^ExcludeArch\s*:\s*(.+)")),
-    _NameValue("exclusivearch", re_tag_compile(r"^ExclusiveArch\s*:\s*(.+)")),
+    _SplitValue("buildarch", re_tag_compile(r"^BuildArch\s*:\s*(\S+)")),
+    _SplitValue("excludearch", re_tag_compile(r"^ExcludeArch\s*:\s*(.+)")),
+    _SplitValue("exclusivearch", re_tag_compile(r"^ExclusiveArch\s*:\s*(.+)")),
     _ListAndDict("sources", re_tag_compile(r"^(Source\d*\s*):\s*(.+)")),
     _ListAndDict("patches", re_tag_compile(r"^(Patch\d*\s*):\s*(\S+)")),
     _List("build_requires", re_tag_compile(r"^BuildRequires\s*:\s*(.+)")),

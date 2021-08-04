@@ -37,6 +37,9 @@ class TestSpecFileParser:
         assert spec.buildarch == "noarch"
         assert spec.excludearch == "alpha"
         assert spec.exclusivearch == "i386 x86_64"
+        assert spec.buildarch_list == ["noarch"]
+        assert spec.excludearch_list == ["alpha"]
+        assert spec.exclusivearch_list == ["i386", "x86_64"]
 
     def test_parse_llvm_spec(self) -> None:
         spec = Spec.from_file(os.path.join(CURRENT_DIR, "llvm.spec"))
