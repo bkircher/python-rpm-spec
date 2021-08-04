@@ -20,7 +20,11 @@ if sys.version_info < (3, 7):
     re.Pattern = Any
     re.Match = Any
 
-__all__ = ["Spec", "replace_macros", "Package"]
+__all__ = ["Spec", "replace_macros", "Package", "warnings_enabled"]
+
+
+# Set this to True if you want the library to issue warnings during parsing.
+warnings_enabled: bool = False
 
 
 class _Tag(metaclass=ABCMeta):
@@ -238,9 +242,10 @@ class _DummyMacroDef(_Tag):
     def __init__(self, name, pattern_obj):
         super().__init__(name, pattern_obj, str)
 
-    def update_impl(self, spec_obj, context, match_obj, line):
+    def update_impl(self, spec_obj, context, _, line):
         context["line_processor"] = None
-        warn("Unknown macro: " + line)
+        if warnings_enabled:
+            warn("Unknown macro: " + line)
         return spec_obj, context
 
 

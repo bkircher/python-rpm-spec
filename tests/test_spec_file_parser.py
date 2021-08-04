@@ -2,6 +2,7 @@ import os.path
 
 import pytest
 
+import pyrpm.spec
 from pyrpm.spec import Package, Spec, replace_macros
 
 CURRENT_DIR = os.path.dirname(os.path.realpath(__file__))
@@ -196,10 +197,14 @@ class TestReplaceMacro:
             replace_macros("something something", spec=None)
 
     def test_replace_unknown_section(self) -> None:
-        """Ensure that string that spec that has an unknown section warns."""
+        """Ensure that we can print warnings during parsing."""
 
-        with pytest.warns(UserWarning):
-            spec = Spec.from_file(os.path.join(CURRENT_DIR, "perl-Array-Compare.spec"))
+        try:
+            pyrpm.spec.warnings_enabled = True
+            with pytest.warns(UserWarning):
+                Spec.from_file(os.path.join(CURRENT_DIR, "perl-Array-Compare.spec"))
+        finally:
+            pyrpm.spec.warnings_enabled = False
 
     def test_replace_unknown_macro(self) -> None:
         """Ensure that string that do not have a definition in the spec file are left intact."""
