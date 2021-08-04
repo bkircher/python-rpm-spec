@@ -239,6 +239,8 @@ _tags = [
     _NameValue("url", re_tag_compile(r"^URL\s*:\s*(\S+)")),
     _NameValue("buildroot", re_tag_compile(r"^BuildRoot\s*:\s*(\S+)")),
     _NameValue("buildarch", re_tag_compile(r"^BuildArch\s*:\s*(\S+)")),
+    _NameValue("excludearch", re_tag_compile(r"^ExcludeArch\s*:\s*(.+)")),
+    _NameValue("exclusivearch", re_tag_compile(r"^ExclusiveArch\s*:\s*(.+)")),
     _ListAndDict("sources", re_tag_compile(r"^(Source\d*\s*):\s*(.+)")),
     _ListAndDict("patches", re_tag_compile(r"^(Patch\d*\s*):\s*(\S+)")),
     _List("build_requires", re_tag_compile(r"^BuildRequires\s*:\s*(.+)")),

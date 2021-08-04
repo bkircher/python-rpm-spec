@@ -9,6 +9,8 @@ URL:            http://search.cpan.org/dist/Array-Compare/
 Source0:        http://www.cpan.org/authors/id/D/DA/DAVECROSS/Array-Compare-%{version}.tar.gz
 BuildRoot:      %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 BuildArch:      noarch
+ExcludeArch:    alpha
+ExclusiveArch:  i386 x86_64
 BuildRequires:  perl >= 1:5.6.0
 BuildRequires:  perl(Module::Build)
 Requires:       perl(:MODULE_COMPAT_%(eval "`%{__perl} -V:version`"; echo $version))
