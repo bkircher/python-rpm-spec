@@ -103,6 +103,16 @@ for br in spec.build_requires:
 # cmake(Qt5Network) >= 5.6.0
 ```
 
+If you want that the library [create warnings](https://docs.python.org/3/library/warnings.html) during parsing, for example on
+unknown macros, set `warnings_enabled` to `True`:
+
+```python
+import pyrpm.spec
+
+pyrpm.spec.warnings_enabled = True
+# …
+```
+
 ## Install
 
 python-rpm-spec is [hosted](https://pypi.org/project/python-rpm-spec/) on PyPI -
@@ -149,6 +159,7 @@ $ pytest --mypy  # Run the type checker
 
 ## Further references
 
-Take a look at the excellent [RPM Packaging Guide](https://rpm-guide.readthedocs.io/en/latest/index.html), especially the section [What is a SPEC File?](https://rpm-guide.readthedocs.io/en/latest/rpm-guide.html#what-is-a-spec-file)
+Take a look at the excellent [RPM Packaging Guide](https://rpm-guide.readthedocs.io/en/latest/index.html), especially the section
+[What is a SPEC File?](https://rpm-guide.readthedocs.io/en/latest/rpm-guide.html#what-is-a-spec-file)
 
 Happy hacking!
