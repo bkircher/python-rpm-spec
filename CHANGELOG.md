@@ -1,10 +1,14 @@
 # Changelog
 
-## UNRELEASED
+## 0.11 (2021-08-05)
 
-* Add type annotations for tools like mypy, your IDE, and your brain (Thanks [@KOLANICH](https://github.com/KOLANICH)).
-* replace_macro now always expects a Spec instance as second argument. Does not make much sense without.
-* Add support for parsing %description and %changelog (see PR [#42](https://github.com/bkircher/python-rpm-spec/pull/42)).
+Changes:
+
+* Add type annotations for tools like mypy, your IDE, and your brain. Thanks [@KOLANICH](https://github.com/KOLANICH).
+* `replace_macros()` function now always expects a Spec instance as second argument. Does not make much sense without.
+* Add support for parsing %description and %changelog (see PR [#42](https://github.com/bkircher/python-rpm-spec/pull/42)). Thanks [@BrunoVernay](https://github.com/BrunoVernay).
+* Add support for ExcludeArch and ExclusiveArch ([#45](https://github.com/bkircher/python-rpm-spec/pull/45)). Thanks [@tonsh](https://github.com/tonsh).
+* Add `warnings_enabled` knob to issue [warnings](https://docs.python.org/3/library/warnings.html#module-warnings) of type `UserWarning` during spec file parsing.
 
 ## 0.10 (2020-09-19)
 
