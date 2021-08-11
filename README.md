@@ -37,6 +37,27 @@ All [current Python branches](https://devguide.python.org/#status-of-python-bran
 | 3.7            | 2023-06-27      |
 | 3.6            | 2021-12-23      |
 
+
+## Install
+
+python-rpm-spec is [hosted](https://pypi.org/project/python-rpm-spec/) on PyPI -
+the Python Package Index. So all you need to do is
+
+```sh
+$ python -m pip install python-rpm-spec==0.11
+```
+
+in your virtual environment.
+
+Alternatively, if you run Fedora, you can enable a COPR repository and use the
+package manager to install a python-rpm-spec as a normal package in your
+system.
+
+```sh
+$ sudo dnf copr enable bkircher/python-rpm-spec  # Enable copr repo
+$ sudo dnf install python-rpm-spec  # Install the package
+```
+
 ## Examples
 
 This is how you access a spec file's various definitions:
@@ -111,26 +132,6 @@ import pyrpm.spec
 
 pyrpm.spec.warnings_enabled = True
 # …
-```
-
-## Install
-
-python-rpm-spec is [hosted](https://pypi.org/project/python-rpm-spec/) on PyPI -
-the Python Package Index. So all you need to do is
-
-```sh
-$ pip install python-rpm-spec
-```
-
-in your virtual environment.
-
-Alternatively, if you run Fedora, you can enable a copr repository and use the
-package manager to install a python-rpm-spec as a normal package in your
-system.
-
-```sh
-$ sudo dnf copr enable bkircher/python-rpm-spec  # Enable copr repo
-$ sudo dnf install -y python3-rpm-spec  # Install the package
 ```
 
 ## Dependencies
