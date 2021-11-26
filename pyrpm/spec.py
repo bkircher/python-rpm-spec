@@ -145,14 +145,14 @@ class _List(_Tag):
         target_obj = _Tag.current_target(spec_obj, context)
 
         if not hasattr(target_obj, self.name):
-            setattr(target_obj, self.name, list())
+            setattr(target_obj, self.name, [])
 
         value = match_obj.group(1)
         if self.name == "packages":
             if value == "-n":
                 subpackage_name = line.rsplit(" ", 1)[-1].rstrip()
             else:
-                subpackage_name = "{}-{}".format(spec_obj.name, value)
+                subpackage_name = f"{spec_obj.name}-{value}"
             package = Package(subpackage_name)
             context["current_subpackage"] = package
             package.is_subpackage = True
@@ -204,7 +204,7 @@ class _ListAndDict(_Tag):
 
     def update_impl(self, spec_obj: "Spec", context: Dict[str, Any], match_obj: re.Match, line: str) -> Tuple["Spec", dict]:
         source_name, value = match_obj.groups()
-        dictionary = getattr(spec_obj, "{}_dict".format(self.name))
+        dictionary = getattr(spec_obj, f"{self.name}_dict")
         dictionary[source_name] = value
         target_obj = _Tag.current_target(spec_obj, context)
         getattr(target_obj, self.name).append(value)
@@ -216,7 +216,7 @@ class _SplitValue(_NameValue):
 
     def __init__(self, name: str, pattern_obj: re.Pattern, sep: str = None) -> None:
         super().__init__(name, pattern_obj)
-        self.name_list = "%s_list" % name
+        self.name_list = f"{name}_list"
         self.sep = sep
 
     def update_impl(self, spec_obj: "Spec", context: Dict[str, Any], match_obj: re.Match, line: str) -> Tuple["Spec", dict]:
@@ -408,7 +408,7 @@ class Package:
         self.is_subpackage = False
 
     def __repr__(self) -> str:
-        return "Package('{}')".format(self.name)
+        return f"Package('{self.name}')"
 
 
 class Spec:
@@ -494,6 +494,7 @@ def replace_macros(string: str, spec: Spec) -> str:
         raise Exception("Given string is not a conditional macro")
 
     def _macro_repl(match):
+        # pylint: disable=too-many-return-statements
         macro_name = match.group(1)
         if _is_conditional(macro_name) and spec:
             parts = macro_name[1:].split(sep=":", maxsplit=1)
