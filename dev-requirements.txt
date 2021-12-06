@@ -1,6 +1,6 @@
 black==21.6b0
 flit
-pylint==2.12.1
+pylint==2.12.2
 pytest
 pytest-mypy
 rope
