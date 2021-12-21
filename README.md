@@ -32,11 +32,12 @@ All [current Python branches](https://devguide.python.org/#status-of-python-bran
 
 | Python Version | Supported Until |
 | :------------- | --------------: |
-| 3.9            | TBD             |
-| 3.8            | TBD             |
+| 3.10           | 2026-10         |
+| 3.9            | 2025-10         |
+| 3.8            | 2024-10         |
 | 3.7            | 2023-06-27      |
-| 3.6            | 2021-12-23      |
 
+Also works on 3.6 and possibly older versions but they might break anytime.
 
 ## Install
 
