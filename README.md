@@ -50,15 +50,6 @@ $ python -m pip install python-rpm-spec==0.11
 
 in your virtual environment.
 
-Alternatively, if you run Fedora, you can enable a COPR repository and use the
-package manager to install a python-rpm-spec as a normal package in your
-system.
-
-```sh
-$ sudo dnf copr enable bkircher/python-rpm-spec  # Enable copr repo
-$ sudo dnf install python-rpm-spec  # Install the package
-```
-
 ## Examples
 
 This is how you access a spec file's various definitions:
