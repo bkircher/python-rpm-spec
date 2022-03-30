@@ -49,7 +49,10 @@ class TestSpecFileParser:
         assert spec.version == "3.8.0"
 
         assert len(spec.sources) == 2
-        assert spec.sources[0] == "http://llvm.org/releases/%{version}/%{name}-%{version}.src.tar.xz"
+        assert (
+            spec.sources[0]
+            == "http://llvm.org/releases/%{version}/%{name}-%{version}.src.tar.xz"
+        )
         assert spec.sources[1] == "llvm-config.h"
 
         assert len(spec.patches) == 1
@@ -107,7 +110,10 @@ class TestSpecFileParser:
         # Summary: tag
         assert spec.summary == "JavaScript Remote Debugger for SpiderMonkey"
         packages = spec.packages_dict
-        assert packages["jsrdbg-devel"].summary == "Header files, libraries and development documentation for %{name}"
+        assert (
+            packages["jsrdbg-devel"].summary
+            == "Header files, libraries and development documentation for %{name}"
+        )
         assert packages["jrdb"].summary == "A command line debugger client for %{name}"
 
     def test_defines(self) -> None:
