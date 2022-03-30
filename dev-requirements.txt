@@ -2,5 +2,7 @@ black==21.6b0
 flit
 pylint==2.13.3
 pytest
+coverage
+pytest-cov
 pytest-mypy
 rope
