@@ -1,6 +1,6 @@
 black==22.1.0
 flit
-pylint==2.13.4
+pylint==2.13.5
 pytest
 coverage
 pytest-cov
