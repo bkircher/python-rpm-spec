@@ -1,5 +1,4 @@
 {
-    "python.pythonPath": ".venv/bin/python3",
     "python.formatting.provider": "black",
     "python.formatting.blackArgs": [
         "--line-length",
@@ -14,7 +13,6 @@
         "tests",
     ],
     "python.testing.unittestEnabled": false,
-    "python.testing.nosetestsEnabled": false,
     "python.testing.pytestEnabled": true,
     "python.testing.autoTestDiscoverOnSaveEnabled": true,
     "editor.formatOnSaveMode": "modifications",
