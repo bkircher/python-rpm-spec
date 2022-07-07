@@ -10,6 +10,7 @@ add support for the missing pieces.
 
 """
 
+import os
 import re
 import sys
 from warnings import warn
@@ -312,7 +313,7 @@ def _parse(spec_obj: "Spec", context: Dict[str, Any], line: str) -> Any:
         previous_txt = getattr(target_obj, context["multiline"], "")
         if previous_txt is None:
             previous_txt = ""
-        setattr(target_obj, context["multiline"], str(previous_txt) + line)
+        setattr(target_obj, context["multiline"], str(previous_txt) + line + os.linesep)
 
     return spec_obj, context
 
