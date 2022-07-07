@@ -194,18 +194,8 @@ line 3
 * Thu Jun 16 2022 First Last <name@example.com> - 1-1
 - blah blah blah.
 """)
-        assert spec.description == r"""line 1
-
-line 2
-line 3
-
-"""
-        assert spec.changelog == r"""* Thu Jul  7 2022 First Last <name@example.com> - 1-2
-- blah blah blah.
-
-* Thu Jun 16 2022 First Last <name@example.com> - 1-1
-- blah blah blah.
-"""
+        assert spec.description == os.linesep.join(['line 1', '', 'line 2', 'line 3', '', ''])
+        assert spec.changelog == os.linesep.join(['* Thu Jul  7 2022 First Last <name@example.com> - 1-2', '- blah blah blah.', '', '* Thu Jun 16 2022 First Last <name@example.com> - 1-1', '- blah blah blah.', ''])
 
 
 class TestSpecClass:
