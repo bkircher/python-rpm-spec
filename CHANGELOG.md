@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.12 (2022-07-07)
+
+* Fix description and changelog with multi-line strings [#46](https://github.com/bkircher/python-rpm-spec/issues/46). Thanks [@tagoh](https://github.com/tagoh).
+
 ## 0.11 (2021-08-05)
 
 Changes:
