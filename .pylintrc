@@ -1,7 +1,6 @@
 [MESSAGES CONTROL]
 enable=all
-disable=bad-continuation,
-        missing-docstring,
+disable=missing-docstring,
         invalid-name,
         too-few-public-methods,
         no-member,
