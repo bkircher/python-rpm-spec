@@ -174,7 +174,12 @@ Version: %{version}
         core_package = spec.packages_dict["git-core"]
         assert not core_package.build_requires
 
-    def test_multiline_context(self) -> None:
+    def test_multiline_context_from_file(self) -> None:
+        spec = Spec.from_file(os.path.join(CURRENT_DIR, 'foo.spec'))
+        assert spec.description == os.linesep.join(['line 1', '', 'line 2', 'line 3', '', ''])
+        assert spec.changelog == os.linesep.join(['* Thu Jul  7 2022 First Last <name@example.com> - 1-2', '- blah blah blah.', '', '* Thu Jun 16 2022 First Last <name@example.com> - 1-1', '- blah blah blah.', ''])
+
+    def test_multiline_context_from_string(self) -> None:
         spec = Spec.from_string(
             r"""
 Name: foo
