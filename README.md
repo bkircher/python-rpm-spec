@@ -45,7 +45,7 @@ python-rpm-spec is [hosted](https://pypi.org/project/python-rpm-spec/) on PyPI -
 the Python Package Index. So all you need to do is
 
 ```sh
-$ python -m pip install python-rpm-spec==0.11
+$ python -m pip install python-rpm-spec==0.12
 ```
 
 in your virtual environment.
