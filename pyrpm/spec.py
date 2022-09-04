@@ -181,6 +181,8 @@ class _List(_Tag):
             "obsoletes",
             "provides",
         ]:
+            # fix parse error in build_requires if comments behind
+            value = value.split('#',2)[0].rstrip()
             # Macros are valid in requirements
             value = replace_macros(value, spec=spec_obj)
 
