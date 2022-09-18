@@ -343,8 +343,15 @@ class Requirement:
             self.operator = None
             self.version = None
 
+    def __eq__(self, o: object) -> bool:
+        if isinstance(o, str):
+            return self.line == o
+        if isinstance(o, str):
+            return self.name == o.name and self.operator == o.operator and self.version == o.version
+        return False
+
     def __repr__(self):
-        return self.line
+        return f"Requirement('{self.line}')"
 
 
 class Package:

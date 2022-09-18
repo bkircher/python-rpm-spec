@@ -1,14 +1,20 @@
+import re
 import os.path
 
 import pytest
 
 import pyrpm.spec
-from pyrpm.spec import Package, Spec, replace_macros
+from pyrpm.spec import Package, Requirement, Spec, replace_macros
 
 CURRENT_DIR = os.path.dirname(os.path.realpath(__file__))
 
 
 # pylint: disable=protected-access
+
+
+def camel_to_snake(name):
+    name = re.sub("(.)([A-Z][a-z]+)", r"\1_\2", name)
+    return re.sub("([a-z0-9])([A-Z])", r"\1_\2", name).lower()
 
 
 class TestPackageClass:
@@ -20,6 +26,17 @@ class TestPackageClass:
     def test_is_subpackage(self) -> None:
         package = Package("foo")
         assert package.is_subpackage is False
+
+
+class TestRequirementClass:
+    def test_repr_string(self) -> None:
+        req = Requirement("foo")
+        assert req.name == "foo"
+        assert str(req) == "Requirement('foo')"
+
+    def test_equal_to_string(self) -> None:
+        req = Requirement("foo")
+        assert req == "foo"
 
 
 class TestSpecFileParser:
@@ -80,6 +97,17 @@ class TestSpecFileParser:
         actual = [package.name for package in spec.packages]
         for name in expected:
             assert name in actual
+
+    @pytest.mark.parametrize("element", ["BuildRequires", "Requires", "Conflicts", "Obsoletes", "Provides"])
+    def test_end_of_line_comment_in_list(self, element):
+        spec = Spec.from_string(
+            f"""
+{element}:  a
+{element}:  b # some comment
+{element}:  c # some comment
+"""
+        )
+        assert getattr(spec, camel_to_snake(element)) == ["a", "b", "c"]
 
     def test_packages_dict_property(self) -> None:
         spec = Spec.from_file(os.path.join(CURRENT_DIR, "perl-Array-Compare.spec"))
