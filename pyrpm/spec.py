@@ -29,9 +29,7 @@ warnings_enabled: bool = False
 
 
 class _Tag(metaclass=ABCMeta):
-    def __init__(
-        self, name: str, pattern_obj: re.Pattern, attr_type: Type[Any]
-    ) -> None:
+    def __init__(self, name: str, pattern_obj: re.Pattern, attr_type: Type[Any]) -> None:
         self.name = name
         self.pattern_obj = pattern_obj
         self.attr_type = attr_type
@@ -39,9 +37,7 @@ class _Tag(metaclass=ABCMeta):
     def test(self, line: str) -> Optional[re.Match]:
         return re.search(self.pattern_obj, line)
 
-    def update(
-        self, spec_obj: "Spec", context: Dict[str, Any], match_obj: re.Match, line: str
-    ) -> Any:
+    def update(self, spec_obj: "Spec", context: Dict[str, Any], match_obj: re.Match, line: str) -> Any:
         """Update given spec object and parse context and return them again.
 
         :param spec_obj: An instance of Spec class
@@ -63,9 +59,7 @@ class _Tag(metaclass=ABCMeta):
         pass
 
     @staticmethod
-    def current_target(
-        spec_obj: "Spec", context: Dict[str, Any]
-    ) -> Union["Spec", "Package"]:
+    def current_target(spec_obj: "Spec", context: Dict[str, Any]) -> Union["Spec", "Package"]:
         target_obj = spec_obj
         if context["current_subpackage"] is not None:
             target_obj = context["current_subpackage"]
@@ -75,16 +69,10 @@ class _Tag(metaclass=ABCMeta):
 class _NameValue(_Tag):
     """Parse a simple name → value tag."""
 
-    def __init__(
-        self, name: str, pattern_obj: re.Pattern, attr_type: Optional[Type[Any]] = None
-    ) -> None:
-        super().__init__(
-            name, pattern_obj, cast(Type[Any], attr_type if attr_type else str)
-        )
+    def __init__(self, name: str, pattern_obj: re.Pattern, attr_type: Optional[Type[Any]] = None) -> None:
+        super().__init__(name, pattern_obj, cast(Type[Any], attr_type if attr_type else str))
 
-    def update_impl(
-        self, spec_obj: "Spec", context: Dict[str, Any], match_obj: re.Match, line: str
-    ) -> Tuple["Spec", dict]:
+    def update_impl(self, spec_obj: "Spec", context: Dict[str, Any], match_obj: re.Match, line: str) -> Tuple["Spec", dict]:
         if self.name == "changelog":
             context["current_subpackage"] = None
 
@@ -113,9 +101,7 @@ class _SetterMacroDef(_Tag):
     def get_namespace(self, spec_obj, context):
         raise NotImplementedError()
 
-    def update_impl(
-        self, spec_obj: "Spec", context: Dict[str, Any], match_obj: re.Match, line: str
-    ) -> Tuple["Spec", dict]:
+    def update_impl(self, spec_obj: "Spec", context: Dict[str, Any], match_obj: re.Match, line: str) -> Tuple["Spec", dict]:
         name, value = match_obj.groups()
         setattr(self.get_namespace(spec_obj, context), name, str(value))
         return spec_obj, context
@@ -156,9 +142,7 @@ class _List(_Tag):
     def __init__(self, name: str, pattern_obj: re.Pattern) -> None:
         super().__init__(name, pattern_obj, list)
 
-    def update_impl(
-        self, spec_obj: "Spec", context: Dict[str, Any], match_obj: re.Match, line: str
-    ) -> Tuple["Spec", dict]:
+    def update_impl(self, spec_obj: "Spec", context: Dict[str, Any], match_obj: re.Match, line: str) -> Tuple["Spec", dict]:
         target_obj = _Tag.current_target(spec_obj, context)
 
         if not hasattr(target_obj, self.name):
@@ -219,9 +203,7 @@ class _ListAndDict(_Tag):
     def __init__(self, name: str, pattern_obj: re.Pattern) -> None:
         super().__init__(name, pattern_obj, list)
 
-    def update_impl(
-        self, spec_obj: "Spec", context: Dict[str, Any], match_obj: re.Match, line: str
-    ) -> Tuple["Spec", dict]:
+    def update_impl(self, spec_obj: "Spec", context: Dict[str, Any], match_obj: re.Match, line: str) -> Tuple["Spec", dict]:
         source_name, value = match_obj.groups()
         dictionary = getattr(spec_obj, f"{self.name}_dict")
         dictionary[source_name] = value
@@ -238,9 +220,7 @@ class _SplitValue(_NameValue):
         self.name_list = f"{name}_list"
         self.sep = sep
 
-    def update_impl(
-        self, spec_obj: "Spec", context: Dict[str, Any], match_obj: re.Match, line: str
-    ) -> Tuple["Spec", dict]:
+    def update_impl(self, spec_obj: "Spec", context: Dict[str, Any], match_obj: re.Match, line: str) -> Tuple["Spec", dict]:
         super().update_impl(spec_obj, context, match_obj, line)
 
         target_obj = _Tag.current_target(spec_obj, context)

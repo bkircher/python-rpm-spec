@@ -49,10 +49,7 @@ class TestSpecFileParser:
         assert spec.version == "3.8.0"
 
         assert len(spec.sources) == 2
-        assert (
-            spec.sources[0]
-            == "http://llvm.org/releases/%{version}/%{name}-%{version}.src.tar.xz"
-        )
+        assert spec.sources[0] == "http://llvm.org/releases/%{version}/%{name}-%{version}.src.tar.xz"
         assert spec.sources[1] == "llvm-config.h"
 
         assert len(spec.patches) == 1
@@ -110,10 +107,7 @@ class TestSpecFileParser:
         # Summary: tag
         assert spec.summary == "JavaScript Remote Debugger for SpiderMonkey"
         packages = spec.packages_dict
-        assert (
-            packages["jsrdbg-devel"].summary
-            == "Header files, libraries and development documentation for %{name}"
-        )
+        assert packages["jsrdbg-devel"].summary == "Header files, libraries and development documentation for %{name}"
         assert packages["jrdb"].summary == "A command line debugger client for %{name}"
 
     def test_defines(self) -> None:
@@ -175,9 +169,18 @@ Version: %{version}
         assert not core_package.build_requires
 
     def test_multiline_context_from_file(self) -> None:
-        spec = Spec.from_file(os.path.join(CURRENT_DIR, 'foo.spec'))
-        assert spec.description == os.linesep.join(['line 1', '', 'line 2', 'line 3', '', ''])
-        assert spec.changelog == os.linesep.join(['* Thu Jul  7 2022 First Last <name@example.com> - 1-2', '- blah blah blah.', '', '* Thu Jun 16 2022 First Last <name@example.com> - 1-1', '- blah blah blah.', ''])
+        spec = Spec.from_file(os.path.join(CURRENT_DIR, "foo.spec"))
+        assert spec.description == os.linesep.join(["line 1", "", "line 2", "line 3", "", ""])
+        assert spec.changelog == os.linesep.join(
+            [
+                "* Thu Jul  7 2022 First Last <name@example.com> - 1-2",
+                "- blah blah blah.",
+                "",
+                "* Thu Jun 16 2022 First Last <name@example.com> - 1-1",
+                "- blah blah blah.",
+                "",
+            ]
+        )
 
     def test_multiline_context_from_string(self) -> None:
         spec = Spec.from_string(
@@ -198,9 +201,19 @@ line 3
 
 * Thu Jun 16 2022 First Last <name@example.com> - 1-1
 - blah blah blah.
-""")
-        assert spec.description == os.linesep.join(['line 1', '', 'line 2', 'line 3', '', ''])
-        assert spec.changelog == os.linesep.join(['* Thu Jul  7 2022 First Last <name@example.com> - 1-2', '- blah blah blah.', '', '* Thu Jun 16 2022 First Last <name@example.com> - 1-1', '- blah blah blah.', ''])
+"""
+        )
+        assert spec.description == os.linesep.join(["line 1", "", "line 2", "line 3", "", ""])
+        assert spec.changelog == os.linesep.join(
+            [
+                "* Thu Jul  7 2022 First Last <name@example.com> - 1-2",
+                "- blah blah blah.",
+                "",
+                "* Thu Jun 16 2022 First Last <name@example.com> - 1-1",
+                "- blah blah blah.",
+                "",
+            ]
+        )
 
 
 class TestSpecClass:

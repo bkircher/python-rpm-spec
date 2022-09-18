@@ -5,9 +5,7 @@ print(spec.name)
 print(spec.description)
 
 for package in spec.packages:
-    print(
-        f'{package.name}: {package.summary if hasattr(package, "summary") else spec.summary}'
-    )
+    print(f'{package.name}: {package.summary if hasattr(package, "summary") else spec.summary}')
     print(package.description)
     print()
 
