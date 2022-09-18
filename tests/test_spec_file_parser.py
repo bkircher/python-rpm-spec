@@ -8,7 +8,7 @@ from pyrpm.spec import Package, Spec, replace_macros
 CURRENT_DIR = os.path.dirname(os.path.realpath(__file__))
 
 
-# pylint: disable=no-self-use,protected-access
+# pylint: disable=protected-access
 
 
 class TestPackageClass:
@@ -233,7 +233,7 @@ class TestSpecClass:
         assert spec.patches == []
         assert spec.build_requires == []
         assert spec.requires == []
-        assert spec.packages == []
+        assert not spec.packages
 
 
 class TestReplaceMacro:
