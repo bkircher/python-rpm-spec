@@ -38,6 +38,18 @@ class TestRequirementClass:
         req = Requirement("foo")
         assert req == "foo"
 
+    def test_equal_to_string_with_version(self) -> None:
+        req = Requirement("foo >= 0.1")
+        assert req == "foo >= 0.1"
+
+    def test_equal_to_other_requirement(self) -> None:
+        req = Requirement("foo")
+        assert req == Requirement("foo")
+
+    def test_equal_to_other_requirement_with_version(self) -> None:
+        req = Requirement("foo >= 0.1")
+        assert req == Requirement("foo >= 0.1")
+
 
 class TestSpecFileParser:
     def test_parse_perl_array_compare_spec(self) -> None:

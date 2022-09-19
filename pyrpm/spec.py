@@ -348,7 +348,7 @@ class Requirement:
     def __eq__(self, o: object) -> bool:
         if isinstance(o, str):
             return self.line == o
-        if isinstance(o, str):
+        if isinstance(o, Requirement):
             return self.name == o.name and self.operator == o.operator and self.version == o.version
         return False
 
