@@ -10,7 +10,7 @@ If you want to quickly parse a spec file on the command line you might want to
 give `rpmspec --parse` a try.
 
 ```sh
-$ rpmspec --parse file.spec | awk '/Source/ {print $2}'
+rpmspec --parse file.spec | awk '/Source/ {print $2}'
 ```
 
 If you write Python, have no `/usr/bin/rpm` around, or want to do something
@@ -45,7 +45,7 @@ python-rpm-spec is [hosted](https://pypi.org/project/python-rpm-spec/) on PyPI -
 the Python Package Index. So all you need to do is
 
 ```sh
-$ python -m pip install python-rpm-spec==0.12
+python -m pip install python-rpm-spec==0.12
 ```
 
 in your virtual environment.
@@ -141,13 +141,13 @@ terribly complicated to add support for the missing pieces.
 If you want to hack on this module you could start with following recipe:
 
 ```sh
-$ git clone https://github.com/bkircher/python-rpm-spec.git  # Clone the repo
-$ cd python-rpm-spec  # Change into the source directory
-$ python3 -m venv .venv  # Create a virtual environment
-$ source .venv/bin/activate  # Activate it
-$ pip install -r dev-requirements.txt  # Install dependencies for development
-$ pytest  # Execute all tests
-$ pytest --mypy  # Run the type checker
+git clone https://github.com/bkircher/python-rpm-spec.git  # Clone the repo
+cd python-rpm-spec  # Change into the source directory
+python3 -m venv .venv  # Create a virtual environment
+source .venv/bin/activate  # Activate it
+pip install -r dev-requirements.txt  # Install dependencies for development
+pytest  # Execute all tests
+pytest --mypy  # Run the type checker
 ```
 
 ## Further references
