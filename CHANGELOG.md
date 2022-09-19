@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.13 (YYYY-MM-DD)
+
+* Fix parsing of BuildRequires:, Requires:, Conflicts:, Obsoletes:, Provides: with comments at end of line. Thanks [@SuoXC](https://github.com/SuoXC).
+
 ## 0.12 (2022-07-13)
 
 * Fix %description and %changelog with multi-line strings [#46](https://github.com/bkircher/python-rpm-spec/issues/46). Thanks [@tagoh](https://github.com/tagoh).
