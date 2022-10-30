@@ -3,6 +3,7 @@
 ## 0.13 (YYYY-MM-DD)
 
 * Fix parsing of BuildRequires:, Requires:, Conflicts:, Obsoletes:, Provides: with comments at end of line. Thanks [@SuoXC](https://github.com/SuoXC).
+* Add CI for Python 3.11.
 
 ## 0.12 (2022-07-13)
 
