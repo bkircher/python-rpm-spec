@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.13 (YYYY-MM-DD)
+## 0.13 (2022-11-01)
 
 * Fix parsing of BuildRequires:, Requires:, Conflicts:, Obsoletes:, Provides: with comments at end of line. Thanks [@SuoXC](https://github.com/SuoXC).
 * Add CI for Python 3.11.
