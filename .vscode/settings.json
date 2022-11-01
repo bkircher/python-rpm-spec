@@ -4,7 +4,7 @@
         "--line-length",
         "130",
         "--target-version",
-        "py38"
+        "py311"
     ],
     "editor.rulers": [
         130
