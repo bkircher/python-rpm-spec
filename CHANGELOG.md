@@ -1,5 +1,7 @@
 # Changelog
 
+## 0.14 (YYYY-MM-DD)
+
 ## 0.13 (2022-11-01)
 
 * Fix parsing of BuildRequires:, Requires:, Conflicts:, Obsoletes:, Provides: with comments at end of line. Thanks [@SuoXC](https://github.com/SuoXC).
