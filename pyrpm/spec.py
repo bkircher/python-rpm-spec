@@ -450,30 +450,30 @@ class Spec:
         assert self.packages
         return dict(zip([package.name for package in self.packages], self.packages))
 
-    @staticmethod
-    def from_file(filename: str) -> "Spec":
+    @classmethod
+    def from_file(cls, filename: str) -> "Spec":
         """Creates a new Spec object from a given file.
 
         :param filename: The path to the spec file.
         :return: A new Spec object.
         """
 
-        spec = Spec()
+        spec = cls()
         with open(filename, "r", encoding="utf-8") as f:
             parse_context = {"current_subpackage": None}
             for line in f:
                 spec, parse_context = _parse(spec, parse_context, line.rstrip())
         return spec
 
-    @staticmethod
-    def from_string(string: str) -> "Spec":
+    @classmethod
+    def from_string(cls, string: str) -> "Spec":
         """Creates a new Spec object from a given string.
 
         :param string: The contents of a spec file.
         :return: A new Spec object.
         """
 
-        spec = Spec()
+        spec = cls()
         parse_context = {"current_subpackage": None}
         for line in string.splitlines():
             spec, parse_context = _parse(spec, parse_context, line)
