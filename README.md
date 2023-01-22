@@ -14,17 +14,27 @@ rpmspec --parse file.spec | awk '/Source/ {print $2}'
 ```
 
 If you write Python, have no `/usr/bin/rpm` around, or want to do something
-slightly more complicated, try using this Python module.
+slightly more complicated, try using this Python library.
 
 RPMs are build from a package's sources along with a spec file. The spec file
-controls how the RPM is built. This module allows you to parse spec files and
+controls how the RPM is built. This library allows you to parse spec files and
 gives you simple access to various bits of information that is contained in the
 spec file.
 
+## Other options
+
+For alternatives to this library you might want to take a look into:
+
+- [packit/specfile](https://github.com/packit/specfile) - Allows parsing and, different to python-rpm-spec, the manipulation of spec files. Still very young but looks promising and seems actively developed (as of Jan 2023).
+- If you are on a Linux system that has the RPM package manager packaged, consider using system tools like
+  - `/usr/bin/rpmspec` from rpm-build package
+  - `/usr/bin/spectool` from rpmdevtools package
+  The parsers are probably more up to date and less buggy than this library.
+
 ## Features
 
-* No extra dependencies other than Python 3
-* Available on all platforms, parse spec files on Windows
+- No extra dependencies other than Python 3
+- Available on all platforms, parse spec files on Windows
 
 ## Supported Python versions
 
@@ -46,7 +56,7 @@ python-rpm-spec is [hosted](https://pypi.org/project/python-rpm-spec/) on PyPI -
 the Python Package Index. So all you need to do is
 
 ```sh
-python -m pip install python-rpm-spec==0.13
+python -m pip install python-rpm-spec==0.14
 ```
 
 in your virtual environment.
@@ -133,13 +143,13 @@ Except Python 3 no extra dependencies are required.
 
 ## Current status
 
-This module does not parse everything of a spec file. Only the pieces I needed.
+This library does not parse everything of a spec file. Only the pieces I needed.
 So there is probably still plenty of stuff missing. However, it should not be
 terribly complicated to add support for the missing pieces.
 
 ## Development
 
-If you want to hack on this module you could start with following recipe:
+If you want to hack on this library you could start with following recipe:
 
 ```sh
 git clone https://github.com/bkircher/python-rpm-spec.git  # Clone the repo
