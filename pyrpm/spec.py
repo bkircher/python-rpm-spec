@@ -124,10 +124,10 @@ class _LocalMacroDef(_SetterMacroDef):
 class _MacroDef(_Tag):
     """Parse global macro definitions."""
 
-    def __init__(self, name, pattern_obj):
+    def __init__(self, name: str, pattern_obj: re.Pattern) -> None:
         super().__init__(name, pattern_obj, str)
 
-    def update_impl(self, spec_obj, context, match_obj, line):
+    def update_impl(self, spec_obj: "Spec", context: dict, match_obj: re.Match, line: str) -> Tuple["Spec", dict]:
         name, value = match_obj.groups()
         spec_obj.macros[name] = str(value)
         if name not in _tag_names:
