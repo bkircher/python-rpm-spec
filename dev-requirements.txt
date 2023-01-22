@@ -1,8 +1,8 @@
 black==22.10.0
-flit
+coverage==7.0.5
+flit==3.8.0
 pylint==2.15.5
-pytest
-coverage
-pytest-cov
-pytest-mypy
-rope
+pytest-cov==4.0.0
+pytest-mypy==0.10.3
+pytest==7.2.1
+rope==1.7.0
