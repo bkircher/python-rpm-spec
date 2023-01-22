@@ -44,8 +44,6 @@ Attica is a library to access Open Collaboration Service servers.
 %package -n lib%{_libname}%{sonum}
 Summary:        Open Collaboration Service client library - development files
 Group:          System/GUI/KDE
-%requires_ge libQt5Core5
-%requires_ge libQt5Network5
 
 %description -n lib%{_libname}%{sonum}
 Attica is a library to access Open Collaboration Service servers.

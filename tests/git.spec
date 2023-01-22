@@ -139,7 +139,7 @@ BuildRequires: apr-util-bdb
 BuildRequires:  cvs
 BuildRequires:  cvsps
 BuildRequires:  gnupg
-%if 0%{?fedora} || ( 0%{?rhel} && 0%{?rhel} == 7 && %{_arch} != ppc64 )
+%if 0%{?fedora} || ( 0%{?rhel} && 0%{?rhel} == 7 && "%{_arch}" != "ppc64" )
 BuildRequires:  highlight
 %endif
 BuildRequires:  httpd

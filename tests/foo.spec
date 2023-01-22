@@ -1,6 +1,8 @@
 Name: foo
 Version: 1
 Release: 1
+Summary: something something
+License: GPL
 
 %description
 line 1
