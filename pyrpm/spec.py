@@ -15,7 +15,7 @@ import re
 import sys
 from warnings import warn
 from abc import ABCMeta, abstractmethod
-from typing import Any, Dict, List, Optional, Union, Tuple, Type, cast
+from typing import Any, AnyStr, Dict, List, Optional, Union, Tuple, Type, cast
 
 if sys.version_info < (3, 7):
     re.Pattern = Any
@@ -55,7 +55,7 @@ class _Tag(metaclass=ABCMeta):
         return self.update_impl(spec_obj, context, match_obj, line)
 
     @abstractmethod
-    def update_impl(self, spec_obj, context, match_obj, line):
+    def update_impl(self, spec_obj: "Spec", context: Dict[str, Any], match_obj: re.Match, line: str) -> Tuple["Spec", dict]:
         pass
 
     @staticmethod
@@ -98,7 +98,8 @@ class _SetterMacroDef(_Tag):
     def __init__(self, name: str, pattern_obj: re.Pattern) -> None:
         super().__init__(name, pattern_obj, str)
 
-    def get_namespace(self, spec_obj, context):
+    @abstractmethod
+    def get_namespace(self, spec_obj: "Spec", context: Dict[str, Any]) -> "Spec":
         raise NotImplementedError()
 
     def update_impl(self, spec_obj: "Spec", context: Dict[str, Any], match_obj: re.Match, line: str) -> Tuple["Spec", dict]:
@@ -127,7 +128,7 @@ class _MacroDef(_Tag):
     def __init__(self, name: str, pattern_obj: re.Pattern) -> None:
         super().__init__(name, pattern_obj, str)
 
-    def update_impl(self, spec_obj: "Spec", context: dict, match_obj: re.Match, line: str) -> Tuple["Spec", dict]:
+    def update_impl(self, spec_obj: "Spec", context: Dict[str, Any], match_obj: re.Match, line: str) -> Tuple["Spec", dict]:
         name, value = match_obj.groups()
         spec_obj.macros[name] = str(value)
         if name not in _tag_names:
@@ -233,17 +234,17 @@ class _SplitValue(_NameValue):
         return spec_obj, context
 
 
-def re_tag_compile(tag):
+def re_tag_compile(tag: AnyStr) -> re.Pattern:
     return re.compile(tag, re.IGNORECASE)
 
 
 class _DummyMacroDef(_Tag):
     """Parse global macro definitions."""
 
-    def __init__(self, name, pattern_obj):
+    def __init__(self, name: str, pattern_obj: re.Pattern) -> None:
         super().__init__(name, pattern_obj, str)
 
-    def update_impl(self, spec_obj, context, _, line):
+    def update_impl(self, spec_obj: "Spec", context: Dict[str, Any], _: re.Match, line: str) -> Tuple["Spec", dict]:
         context["line_processor"] = None
         if warnings_enabled:
             warn("Unknown macro: " + line)
@@ -352,7 +353,7 @@ class Requirement:
             return self.name == o.name and self.operator == o.operator and self.version == o.version
         return False
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f"Requirement('{self.line}')"
 
 
@@ -493,7 +494,7 @@ def replace_macros(string: str, spec: Spec) -> str:
     """
     assert isinstance(spec, Spec)
 
-    def _first_not_none(tup: Tuple[Any]) -> Any:
+    def _first_not_none(tup: Tuple[Any, ...]) -> Any:
         for i in tup:
             if i is not None:
                 return i
@@ -509,10 +510,10 @@ def replace_macros(string: str, spec: Spec) -> str:
             return False
         raise Exception("Given string is not a conditional macro")
 
-    def _macro_repl(match):
+    def _macro_repl(match: re.Match) -> str:
         # pylint: disable=too-many-return-statements
         groups = match.groups()
-        macro_name = _first_not_none(groups)
+        macro_name: str = _first_not_none(groups)
         assert macro_name
         if _is_conditional(macro_name) and spec:
             parts = macro_name[1:].split(sep=":", maxsplit=1)
@@ -522,7 +523,7 @@ def replace_macros(string: str, spec: Spec) -> str:
                     if len(parts) == 2:
                         return parts[1]
 
-                    return spec.macros.get(parts[0], getattr(spec, parts[0], None))
+                    return spec.macros.get(parts[0], getattr(spec, parts[0]))
 
                 return ""
 
@@ -530,7 +531,7 @@ def replace_macros(string: str, spec: Spec) -> str:
                 if len(parts) == 2:
                     return parts[1]
 
-                return spec.macros.get(parts[0], getattr(spec, parts[0], None))
+                return spec.macros.get(parts[0], getattr(spec, parts[0]))
 
             return ""
 
