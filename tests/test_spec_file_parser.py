@@ -324,6 +324,14 @@ Version:        2
         s = "%{name}/%{version}/%{var}"
         assert replace_macros(s, spec) == "foo/2/bar"
 
+    def test_replace_macro_without_braces(self) -> None:
+        spec = Spec.from_string(
+            """
+%define var bar
+"""
+        )
+        assert replace_macros("foo-%var", spec) == "foo-bar"
+
     def test_replace_macro_with_negative_conditional(self) -> None:
         spec = Spec.from_file(os.path.join(CURRENT_DIR, "git.spec"))
 

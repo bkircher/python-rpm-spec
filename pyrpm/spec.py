@@ -280,7 +280,7 @@ _tags = [
 
 _tag_names = [tag.name for tag in _tags]
 
-_macro_pattern = re.compile(r"%{(\S+?)\}")
+_macro_pattern = re.compile(r"%{(\S+?)\}|%(\w+?)\b")
 
 
 def _parse(spec_obj: "Spec", context: Dict[str, Any], line: str) -> Any:
@@ -493,6 +493,12 @@ def replace_macros(string: str, spec: Spec) -> str:
     """
     assert isinstance(spec, Spec)
 
+    def _first_not_none(tup: Tuple[Any]) -> Any:
+        for i in tup:
+            if i is not None:
+                return i
+        raise AssertionError("All elements in tuple are None")
+
     def _is_conditional(macro: str) -> bool:
         return macro.startswith("?") or macro.startswith("!")
 
@@ -505,7 +511,8 @@ def replace_macros(string: str, spec: Spec) -> str:
 
     def _macro_repl(match):
         # pylint: disable=too-many-return-statements
-        macro_name = match.group(1)
+        groups = match.groups()
+        macro_name = _first_not_none(groups)
         assert macro_name
         if _is_conditional(macro_name) and spec:
             parts = macro_name[1:].split(sep=":", maxsplit=1)
