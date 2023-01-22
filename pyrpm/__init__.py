@@ -1,3 +1,3 @@
 """python-rpm-spec is a Python library for parsing RPM spec files."""
 
-__version__ = "0.13"
+__version__ = "0.14"

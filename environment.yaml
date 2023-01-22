@@ -1,9 +1,0 @@
-name: pyrpm
-dependencies:
-  - python>=3.7.0
-  - pip:
-    - black
-    - flit
-    - pylint
-    - pytest
-    - rope

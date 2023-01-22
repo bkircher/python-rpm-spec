@@ -1,6 +1,9 @@
 # Changelog
 
-## 0.14 (YYYY-MM-DD)
+## 0.14 (2023-01-22)
+
+* Teach replace_macro how to deal with macros that are not wrapped in curly braces (PR [#54](https://github.com/bkircher/python-rpm-spec/pull/54).
+* Add type annotations for tools like mypy, your IDE, and your brain (PR [#55](https://github.com/bkircher/python-rpm-spec/pull/55)).
 
 ## 0.13 (2022-11-01)
 
