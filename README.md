@@ -21,20 +21,11 @@ controls how the RPM is built. This library allows you to parse spec files and
 gives you simple access to various bits of information that is contained in the
 spec file.
 
-## Other options
-
-For alternatives to this library you might want to take a look into:
-
-- [packit/specfile](https://github.com/packit/specfile) - Allows parsing and, different to python-rpm-spec, the manipulation of spec files. Still very young but looks promising and seems actively developed (as of Jan 2023).
-- If you are on a Linux system that has the RPM package manager packaged, consider using system tools like
-  - `/usr/bin/rpmspec` from rpm-build package
-  - `/usr/bin/spectool` from rpmdevtools package
-  The parsers are probably more up to date and less buggy than this library.
-
 ## Features
 
 - No extra dependencies other than Python 3
 - Available on all platforms, parse spec files on Windows
+- Read-only (for manipulating spec files see [Alternatives](#alternatives))
 
 ## Supported Python versions
 
@@ -56,7 +47,7 @@ python-rpm-spec is [hosted](https://pypi.org/project/python-rpm-spec/) on PyPI -
 the Python Package Index. So all you need to do is
 
 ```sh
-python -m pip install python-rpm-spec==0.14
+pip install python-rpm-spec
 ```
 
 in your virtual environment.
@@ -146,6 +137,17 @@ Except Python 3 no extra dependencies are required.
 This library does not parse everything of a spec file. Only the pieces I needed.
 So there is probably still plenty of stuff missing. However, it should not be
 terribly complicated to add support for the missing pieces.
+
+## Alternatives
+
+For alternatives to this library you might want to take a look at:
+
+- [packit/specfile](https://github.com/packit/specfile) - Allows parsing and, different to python-rpm-spec, the manipulation of spec files. Still very young but looks promising and seems actively developed (as of Jan 2023).
+- If you are on a Linux system that has the RPM package manager packaged, consider using system tools like
+  - `/usr/bin/rpmspec` from rpm-build package
+  - `/usr/bin/spectool` from rpmdevtools package
+
+  The parsers are probably more up to date and less buggy than this library.
 
 ## Development
 
