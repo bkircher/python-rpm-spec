@@ -217,7 +217,7 @@ class _ListAndDict(_Tag):
 class _SplitValue(_NameValue):
     """Parse a (name->value) tag, and at the same time split the tag to a list."""
 
-    def __init__(self, name: str, pattern_obj: re.Pattern, sep: str = None) -> None:
+    def __init__(self, name: str, pattern_obj: re.Pattern, sep: Optional[None] = None) -> None:
         super().__init__(name, pattern_obj)
         self.name_list = f"{name}_list"
         self.sep = sep
@@ -226,9 +226,9 @@ class _SplitValue(_NameValue):
         super().update_impl(spec_obj, context, match_obj, line)
 
         target_obj = _Tag.current_target(spec_obj, context)
-        value = getattr(target_obj, self.name)
-        value = value.split(self.sep)
-        setattr(target_obj, self.name_list, value)
+        value: str = getattr(target_obj, self.name)
+        values = value.split(self.sep)
+        setattr(target_obj, self.name_list, values)
 
         return spec_obj, context
 
