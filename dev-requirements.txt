@@ -1,7 +1,7 @@
 black==22.12.0
 coverage==7.0.5
 flit==3.8.0
-pylint==2.15.5
+pylint==2.15.10
 pytest-cov==4.0.0
 pytest-mypy==0.10.3
 pytest==7.2.1
