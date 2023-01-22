@@ -506,6 +506,7 @@ def replace_macros(string: str, spec: Spec) -> str:
     def _macro_repl(match):
         # pylint: disable=too-many-return-statements
         macro_name = match.group(1)
+        assert macro_name
         if _is_conditional(macro_name) and spec:
             parts = macro_name[1:].split(sep=":", maxsplit=1)
             assert parts
