@@ -273,10 +273,10 @@ _tags = [
     _List("conflicts", re_tag_compile(r"^Conflicts\s*:\s*(.+)")),
     _List("obsoletes", re_tag_compile(r"^Obsoletes\s*:\s*(.+)")),
     _List("provides", re_tag_compile(r"^Provides\s*:\s*(.+)")),
-    _List("packages", re.compile(r"^%package\s+(\S+)")),
-    _MacroDef("define", re.compile(r"^%define\s+(\S+)\s+(\S+)")),
-    _MacroDef("global", re.compile(r"^%global\s+(\S+)\s+(\S+)")),
-    _DummyMacroDef("dummy", re.compile(r"^%[a-z_]+\b.*$")),
+    _List("packages", re_tag_compile(r"^%package\s+(\S+)")),
+    _MacroDef("define", re_tag_compile(r"^%define\s+(\S+)\s+(\S+)")),
+    _MacroDef("global", re_tag_compile(r"^%global\s+(\S+)\s+(\S+)")),
+    _DummyMacroDef("dummy", re_tag_compile(r"^%[a-z_]+\b.*$")),
 ]
 
 _tag_names = [tag.name for tag in _tags]
