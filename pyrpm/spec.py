@@ -12,14 +12,9 @@ add support for the missing pieces.
 
 import os
 import re
-import sys
 from warnings import warn
 from abc import ABCMeta, abstractmethod
 from typing import Any, AnyStr, Dict, List, Optional, Union, Tuple, Type, cast
-
-if sys.version_info < (3, 7):
-    re.Pattern = Any
-    re.Match = Any
 
 __all__ = ["Spec", "replace_macros", "Package", "warnings_enabled"]
 
