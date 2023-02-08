@@ -31,7 +31,6 @@ All [current Python branches](https://devguide.python.org/versions/#versions) ar
 | 3.10           | 2026-10         |
 | 3.9            | 2025-10         |
 | 3.8            | 2024-10         |
-| 3.7            | 2023-06-27      |
 
 ## Install
 
