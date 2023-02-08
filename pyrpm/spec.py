@@ -508,7 +508,7 @@ def replace_macros(string: str, spec: Spec) -> str:
             return True
         if macro[0] == "!":
             return False
-        raise Exception("Given string is not a conditional macro")
+        raise AssertionError("Given string is not a conditional macro")
 
     def _macro_repl(match: re.Match) -> str:
         # pylint: disable=too-many-return-statements
