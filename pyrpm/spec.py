@@ -152,7 +152,7 @@ class _List(_Tag):
         value = match_obj.group(1)
         if self.name == "packages":
             if value == "-n":
-                subpackage_name = line.rsplit(" ", 1)[-1].rstrip()
+                subpackage_name = re.split(r'\s+', line)[-1].rstrip()
             else:
                 subpackage_name = f"{spec_obj.name}-{value}"
             package = Package(subpackage_name)
