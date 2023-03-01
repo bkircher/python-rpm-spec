@@ -519,11 +519,17 @@ def replace_macros(string: str, spec: Spec) -> str:
             parts = macro_name[1:].split(sep=":", maxsplit=1)
             assert parts
             if _test_conditional(macro_name):
-                if hasattr(spec, parts[0]) or parts[0] in spec.macros:
+                if parts[0] in spec.macros or hasattr(spec, parts[0]):
                     if len(parts) == 2:
                         return parts[1]
 
-                    return spec.macros.get(parts[0], getattr(spec, parts[0]))
+                    if parts[0] in spec.macros:
+                        return spec.macros[parts[0]]
+
+                    if hasattr(spec, parts[0]):
+                        return getattr(spec, parts[0])
+
+                    assert False, "Unreachable"
 
                 return ""
 
