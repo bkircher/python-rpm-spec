@@ -498,7 +498,7 @@ def replace_macros(string: str, spec: Spec) -> str:
         for i in tup:
             if i is not None:
                 return i
-        raise AssertionError("All elements in tuple are None")
+        assert False, "All elements in tuple are None"
 
     def _is_conditional(macro: str) -> bool:
         return macro.startswith(("?", "!"))
@@ -508,7 +508,7 @@ def replace_macros(string: str, spec: Spec) -> str:
             return True
         if macro[0] == "!":
             return False
-        raise AssertionError("Given string is not a conditional macro")
+        assert False, "Given string is not a conditional macro"
 
     def _macro_repl(match: re.Match) -> str:
         # pylint: disable=too-many-return-statements
@@ -530,7 +530,7 @@ def replace_macros(string: str, spec: Spec) -> str:
                     if hasattr(spec, macro):
                         return getattr(spec, macro)
 
-                    raise AssertionError(f"Macro {macro} is unexpectedly not defined")
+                    assert False, "Unreachable"
 
                 return ""
 
