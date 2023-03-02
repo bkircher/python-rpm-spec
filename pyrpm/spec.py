@@ -501,7 +501,7 @@ def replace_macros(string: str, spec: Spec) -> str:
         raise AssertionError("All elements in tuple are None")
 
     def _is_conditional(macro: str) -> bool:
-        return macro.startswith("?") or macro.startswith("!")
+        return macro.startswith(("?", "!"))
 
     def _test_conditional(macro: str) -> bool:
         if macro[0] == "?":
