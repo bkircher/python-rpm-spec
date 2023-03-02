@@ -484,7 +484,7 @@ class Spec:
 def replace_macros(string: str, spec: Spec) -> str:
     """Replace all macros in given string with corresponding values.
 
-    For example: a string '%{name}-%{version}.tar.gz' will be transformed to 'foo-2.0.tar.gz'.
+    For example, a string '%{name}-%{version}.tar.gz' will be transformed to 'foo-2.0.tar.gz'.
 
     :param string A string containing macros that you want to be replaced.
     :param spec A Spec object. Definitions in that spec file will be used to replace macros.
@@ -494,32 +494,28 @@ def replace_macros(string: str, spec: Spec) -> str:
     """
     assert isinstance(spec, Spec)
 
-    def _first_not_none(tup: Tuple[Any, ...]) -> Any:
-        for i in tup:
-            if i is not None:
-                return i
-        assert False, "All elements in tuple are None"
+    def get_first_non_none_value(values: Tuple[Any, ...]) -> Any:
+        return next((v for v in values if v is not None), None)
 
-    def _is_conditional(macro: str) -> bool:
+    def is_conditional_macro(macro: str) -> bool:
         return macro.startswith(("?", "!"))
 
-    def _test_conditional(macro: str) -> bool:
-        if macro[0] == "?":
-            return True
-        if macro[0] == "!":
-            return False
-        assert False, "Given string is not a conditional macro"
+    def is_optional_macro(macro: str) -> bool:
+        return macro.startswith("?")
 
-    def _macro_repl(match: re.Match) -> str:
+    def is_negation_macro(macro: str) -> bool:
+        return macro.startswith("!")
+
+    def get_replacement_string(match: re.Match) -> str:
         # pylint: disable=too-many-return-statements
         groups = match.groups()
-        macro_name: str = _first_not_none(groups)
-        assert macro_name
-        if _is_conditional(macro_name) and spec:
+        macro_name: str = get_first_non_none_value(groups)
+        assert macro_name, "Expected a non None value"
+        if is_conditional_macro(macro_name) and spec:
             parts = macro_name[1:].split(sep=":", maxsplit=1)
-            assert parts
+            assert parts, "Expected a ':' in macro name'"
             macro = parts[0]
-            if _test_conditional(macro_name):
+            if is_optional_macro(macro_name):
                 if hasattr(spec, macro) or macro in spec.macros:
                     if len(parts) == 2:
                         return parts[1]
@@ -534,22 +530,24 @@ def replace_macros(string: str, spec: Spec) -> str:
 
                 return ""
 
-            if len(parts) == 2:
-                return parts[1]
+            if is_negation_macro(macro_name):
+                if len(parts) == 2:
+                    return parts[1]
 
-            return spec.macros.get(macro, getattr(spec, macro))
+                return spec.macros.get(macro, getattr(spec, macro))
 
         if spec:
             value = spec.macros.get(macro_name, getattr(spec, macro_name, None))
             if value:
                 return str(value)
+
         return match.string[match.start() : match.end()]
 
     # Recursively expand macros
     # Note: If macros are not defined in the spec file, this won't try to
     # expand them.
     while True:
-        ret = re.sub(_macro_pattern, _macro_repl, string)
+        ret = re.sub(_macro_pattern, get_replacement_string, string)
         if ret != string:
             string = ret
             continue
