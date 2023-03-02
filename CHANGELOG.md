@@ -3,6 +3,7 @@
 ## 0.15 (YYYY-MM-DD)
 
 * Fix replace_macro's behavior with user-defined conditional macros (PR [#56](https://github.com/bkircher/python-rpm-spec/pull/59)). Thanks [@imphil](https://github.com/imphil).
+* The parsing of package names was wrong when tab characters where used in %package ([#57](https://github.com/bkircher/python-rpm-spec/issues/57)). This has been fixed by [@tagoh](https://github.com/tagoh).
 
 ## 0.14 (2023-01-22)
 
