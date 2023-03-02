@@ -2,6 +2,8 @@
 
 ## 0.15 (YYYY-MM-DD)
 
+* Fix replace_macro's behavior with user-defined conditional macros (PR [#56](https://github.com/bkircher/python-rpm-spec/pull/59)). Thanks [@imphil](https://github.com/imphil).
+
 ## 0.14 (2023-01-22)
 
 * Teach replace_macro how to deal with macros that are not wrapped in curly braces (PR [#54](https://github.com/bkircher/python-rpm-spec/pull/54)).
