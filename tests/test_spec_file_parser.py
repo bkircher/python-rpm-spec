@@ -186,8 +186,7 @@ Version: %{version}
         assert replace_macros(spec.version, spec) == "1.2.3"
 
     def test_custom_conditional_macro(self) -> None:
-        """Test that a user-defined conditional macro is being replaced.
-        """
+        """Test that a user-defined conditional macro is being replaced."""
         spec = Spec.from_string(
             r"""
 Name: foo
@@ -195,7 +194,7 @@ Version: 1
 Release: 1%{?dist}
         """
         )
-        spec.macros['dist'] = '.el8'
+        spec.macros["dist"] = ".el8"
         assert replace_macros(f"{spec.name}-{spec.version}-{spec.release}.src.rpm", spec) == "foo-1-1.el8.src.rpm"
 
     def test_requirement_parsing(self) -> None:
