@@ -518,28 +518,26 @@ def replace_macros(string: str, spec: Spec) -> str:
         if _is_conditional(macro_name) and spec:
             parts = macro_name[1:].split(sep=":", maxsplit=1)
             assert parts
+            macro = parts[0]
             if _test_conditional(macro_name):
-                if parts[0] in spec.macros or hasattr(spec, parts[0]):
+                if hasattr(spec, macro) or macro in spec.macros:
                     if len(parts) == 2:
                         return parts[1]
 
-                    if parts[0] in spec.macros:
-                        return spec.macros[parts[0]]
+                    if macro in spec.macros:
+                        return spec.macros[macro]
 
-                    if hasattr(spec, parts[0]):
-                        return getattr(spec, parts[0])
+                    if hasattr(spec, macro):
+                        return getattr(spec, macro)
 
-                    assert False, "Unreachable"
+                    raise AssertionError(f"Macro {macro} is unexpectedly not defined")
 
                 return ""
 
-            if not hasattr(spec, parts[0]) and parts[0] not in spec.macros:
-                if len(parts) == 2:
-                    return parts[1]
+            if len(parts) == 2:
+                return parts[1]
 
-                return spec.macros.get(parts[0], getattr(spec, parts[0]))
-
-            return ""
+            return spec.macros.get(macro, getattr(spec, macro))
 
         if spec:
             value = spec.macros.get(macro_name, getattr(spec, macro_name, None))
