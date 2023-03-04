@@ -6,7 +6,7 @@ import pytest
 import pyrpm.spec
 from pyrpm.spec import Package, Requirement, Spec, replace_macros
 
-CURRENT_DIR = os.path.dirname(os.path.realpath(__file__))
+TEST_DATA = os.path.join(os.path.dirname(os.path.realpath(__file__)), "data")
 
 
 # pylint: disable=protected-access
@@ -53,7 +53,7 @@ class TestRequirementClass:
 
 class TestSpecFileParser:
     def test_parse_perl_array_compare_spec(self) -> None:
-        spec = Spec.from_file(os.path.join(CURRENT_DIR, "perl-Array-Compare.spec"))
+        spec = Spec.from_file(os.path.join(TEST_DATA, "perl-Array-Compare.spec"))
         assert isinstance(spec, Spec)
 
         assert spec.name == "perl-Array-Compare"
@@ -72,7 +72,7 @@ class TestSpecFileParser:
         assert spec.exclusivearch_list == ["i386", "x86_64"]
 
     def test_parse_llvm_spec(self) -> None:
-        spec = Spec.from_file(os.path.join(CURRENT_DIR, "llvm.spec"))
+        spec = Spec.from_file(os.path.join(TEST_DATA, "llvm.spec"))
 
         assert spec.name == "llvm"
         assert spec.version == "3.8.0"
@@ -86,14 +86,14 @@ class TestSpecFileParser:
 
     def test_parse_only_base_package(self) -> None:
         # spec file does not contain %package directive
-        spec = Spec.from_file(os.path.join(CURRENT_DIR, "perl-Array-Compare.spec"))
+        spec = Spec.from_file(os.path.join(TEST_DATA, "perl-Array-Compare.spec"))
         assert len(spec.packages) == 1
         assert spec.packages[0].name == "perl-Array-Compare"
         assert not spec.packages[0].is_subpackage
 
     def test_parse_subpackages(self) -> None:
         # spec file contains four sub-packages and one base package
-        spec = Spec.from_file(os.path.join(CURRENT_DIR, "llvm.spec"))
+        spec = Spec.from_file(os.path.join(TEST_DATA, "llvm.spec"))
         assert len(spec.packages) == 5
 
         for package in spec.packages:
@@ -102,7 +102,7 @@ class TestSpecFileParser:
 
     def test_parse_subpackage_names(self) -> None:
         # spec file contains %package -n directive
-        spec = Spec.from_file(os.path.join(CURRENT_DIR, "jsrdbg.spec"))
+        spec = Spec.from_file(os.path.join(TEST_DATA, "jsrdbg.spec"))
         assert len(spec.packages) == 3
 
         expected = ["jrdb", "jsrdbg", "jsrdbg-devel"]
@@ -122,27 +122,27 @@ class TestSpecFileParser:
         assert getattr(spec, camel_to_snake(element)) == ["a", "b", "c"]
 
     def test_packages_dict_property(self) -> None:
-        spec = Spec.from_file(os.path.join(CURRENT_DIR, "perl-Array-Compare.spec"))
+        spec = Spec.from_file(os.path.join(TEST_DATA, "perl-Array-Compare.spec"))
         assert isinstance(spec.packages_dict, dict)
         assert len(spec.packages_dict) == len(spec.packages)
 
-        spec = Spec.from_file(os.path.join(CURRENT_DIR, "llvm.spec"))
+        spec = Spec.from_file(os.path.join(TEST_DATA, "llvm.spec"))
         assert isinstance(spec.packages_dict, dict)
         assert len(spec.packages_dict) == len(spec.packages)
 
     def test_sources_dict_property(self) -> None:
-        spec = Spec.from_file(os.path.join(CURRENT_DIR, "llvm.spec"))
+        spec = Spec.from_file(os.path.join(TEST_DATA, "llvm.spec"))
         assert len(spec.sources_dict) == len(spec.sources)
         assert spec.sources_dict["Source0"] is spec.sources[0]
         assert spec.sources_dict["Source100"] is spec.sources[1]
 
     def test_patches_dict_property(self) -> None:
-        spec = Spec.from_file(os.path.join(CURRENT_DIR, "llvm.spec"))
+        spec = Spec.from_file(os.path.join(TEST_DATA, "llvm.spec"))
         assert len(spec.patches_dict) == len(spec.patches)
         assert spec.patches_dict["Patch0"] is spec.patches[0]
 
     def test_subpackage_tags(self) -> None:
-        spec = Spec.from_file(os.path.join(CURRENT_DIR, "jsrdbg.spec"))
+        spec = Spec.from_file(os.path.join(TEST_DATA, "jsrdbg.spec"))
 
         # Summary: tag
         assert spec.summary == "JavaScript Remote Debugger for SpiderMonkey"
@@ -151,7 +151,7 @@ class TestSpecFileParser:
         assert packages["jrdb"].summary == "A command line debugger client for %{name}"
 
     def test_defines(self) -> None:
-        spec = Spec.from_file(os.path.join(CURRENT_DIR, "attica-qt5.spec"))
+        spec = Spec.from_file(os.path.join(TEST_DATA, "attica-qt5.spec"))
 
         # Check if they exist
         for define in ("sonum", "_tar_path", "_libname", "rname"):
@@ -198,14 +198,14 @@ Release: 1%{?dist}
         assert replace_macros(f"{spec.name}-{spec.version}-{spec.release}.src.rpm", spec) == "foo-1-1.el8.src.rpm"
 
     def test_requirement_parsing(self) -> None:
-        spec = Spec.from_file(os.path.join(CURRENT_DIR, "attica-qt5.spec"))
+        spec = Spec.from_file(os.path.join(TEST_DATA, "attica-qt5.spec"))
 
         assert spec.build_requires[0].name == "cmake"
         assert spec.build_requires[0].version == "3.0"
         assert spec.build_requires[0].operator == ">="
 
     def test_subpackage_has_requires(self) -> None:
-        spec = Spec.from_file(os.path.join(CURRENT_DIR, "git.spec"))
+        spec = Spec.from_file(os.path.join(TEST_DATA, "git.spec"))
 
         core_package = spec.packages_dict["git-core"]
         assert len(core_package.requires) == 3
@@ -215,13 +215,13 @@ Release: 1%{?dist}
         sub-packages even though they might be empty.
 
         """
-        spec = Spec.from_file(os.path.join(CURRENT_DIR, "git.spec"))
+        spec = Spec.from_file(os.path.join(TEST_DATA, "git.spec"))
 
         core_package = spec.packages_dict["git-core"]
         assert not core_package.build_requires
 
     def test_multiline_context_from_file(self) -> None:
-        spec = Spec.from_file(os.path.join(CURRENT_DIR, "foo.spec"))
+        spec = Spec.from_file(os.path.join(TEST_DATA, "foo.spec"))
         assert spec.description == os.linesep.join(["line 1", "", "line 2", "line 3", "", ""])
         assert spec.changelog == os.linesep.join(
             [
@@ -301,24 +301,24 @@ class TestReplaceMacro:
         try:
             pyrpm.spec.warnings_enabled = True
             with pytest.warns(UserWarning):
-                Spec.from_file(os.path.join(CURRENT_DIR, "perl-Array-Compare.spec"))
+                Spec.from_file(os.path.join(TEST_DATA, "perl-Array-Compare.spec"))
         finally:
             pyrpm.spec.warnings_enabled = False
 
     def test_replace_unknown_macro(self) -> None:
         """Ensure that string that do not have a definition in the spec file are left intact."""
 
-        spec = Spec.from_file(os.path.join(CURRENT_DIR, "perl-Array-Compare.spec"))
+        spec = Spec.from_file(os.path.join(TEST_DATA, "perl-Array-Compare.spec"))
         s = "%{foobar}"
         assert s == replace_macros(s, spec=spec)
 
     def test_replace_macro_int_type_val(self) -> None:
-        spec = Spec.from_file(os.path.join(CURRENT_DIR, "perl-Array-Compare.spec"))
+        spec = Spec.from_file(os.path.join(TEST_DATA, "perl-Array-Compare.spec"))
         result = replace_macros("%{epoch}", spec)
         assert isinstance(result, str)
 
     def test_replace_macro_twice(self) -> None:
-        spec = Spec.from_file(os.path.join(CURRENT_DIR, "jsrdbg.spec"))
+        spec = Spec.from_file(os.path.join(TEST_DATA, "jsrdbg.spec"))
         # pylint: disable=line-too-long
         assert (
             replace_macros(spec.sources[0], spec)
@@ -345,7 +345,7 @@ Version:        2
         assert replace_macros("foo-%var", spec) == "foo-bar"
 
     def test_replace_macro_with_negative_conditional(self) -> None:
-        spec = Spec.from_file(os.path.join(CURRENT_DIR, "git.spec"))
+        spec = Spec.from_file(os.path.join(TEST_DATA, "git.spec"))
 
         assert (
             replace_macros(
