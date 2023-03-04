@@ -211,7 +211,12 @@ class _ListAndDict(_Tag):
         dictionary = getattr(spec_obj, f"{self.name}_dict")
         dictionary[source_name] = value
         target_obj = _Tag.current_target(spec_obj, context)
-        getattr(target_obj, self.name).append(value)
+        # If we are in a subpackage, add sources and patches to the subpackage dicts as well
+        if hasattr(target_obj, "is_subpackage") and target_obj.is_subpackage:
+            dictionary = getattr(target_obj, f"{self.name}_dict")
+            dictionary[source_name] = value
+            getattr(target_obj, self.name).append(value)
+        getattr(spec_obj, self.name).append(value)
         return spec_obj, context
 
 
@@ -408,6 +413,8 @@ class Package:
                 "conflicts",
                 "obsoletes",
                 "provides",
+                "sources",
+                "patches",
             ]:
                 setattr(self, tag.name, tag.attr_type())
             elif tag.name in [
@@ -415,6 +422,8 @@ class Package:
             ]:
                 setattr(self, tag.name, None)
 
+        self.sources_dict: Dict[str, str] = {}
+        self.patches_dict: Dict[str, str] = {}
         self.name = name
         self.is_subpackage = False
 
