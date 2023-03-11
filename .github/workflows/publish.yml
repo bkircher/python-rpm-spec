@@ -1,6 +1,6 @@
 # Workflow will run when a release has been published for the package
 
-name: publish
+name: Publish package to PyPI
 on:
   release:
     types:
