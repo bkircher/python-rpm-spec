@@ -5,27 +5,21 @@
 
 python-rpm-spec is a Python library for parsing RPM spec files.
 
-*tl;dr*
-If you want to quickly parse a spec file on the command line you might want to
-give `rpmspec --parse` a try.
+*tl;dr* If you want to quickly parse a spec file on the command line you might want to give `rpmspec --parse` a try.
 
 ```sh
 rpmspec --parse file.spec | awk '/Source/ {print $2}'
 ```
 
-If you write Python, have no `/usr/bin/rpm` around, or want to do something
-slightly more complicated, try using this Python library.
+If you write Python, have no `/usr/bin/rpm` around, or want to do something slightly more complicated, try using this Python library.
 
-RPMs are build from a package's sources along with a spec file. The spec file
-controls how the RPM is built. This library allows you to parse spec files and
-gives you simple access to various bits of information that is contained in the
-spec file.
+RPMs are build from a package's sources along with a spec file. The spec file controls how the RPM is built. This library allows you to parse spec files and gives you simple access to various bits of information that is contained in the spec file.
 
 ## Features
 
-- No extra dependencies other than Python 3
-- Available on all platforms, parse spec files on Windows
-- Read-only (for manipulating spec files see [Alternatives](#alternatives))
+- No extra dependencies other than Python 3.
+- Available on all platforms, parse spec files on Windows.
+- Read-only (for manipulating spec files see [Alternatives](#alternatives) below).
 
 ## Supported Python versions
 
@@ -39,12 +33,9 @@ All [current Python branches](https://devguide.python.org/versions/#versions) ar
 | 3.8            | 2024-10         |
 | 3.7            | 2023-06-27      |
 
-Also works on 3.6 and possibly older versions but they might break anytime.
-
 ## Install
 
-python-rpm-spec is [hosted](https://pypi.org/project/python-rpm-spec/) on PyPI -
-the Python Package Index. So all you need to do is
+python-rpm-spec is [hosted](https://pypi.org/project/python-rpm-spec/) on PyPI - the Python Package Index. All you need to do is
 
 ```sh
 pip install python-rpm-spec
@@ -97,8 +88,7 @@ for source in spec.sources:
 # llvm-config.h
 ```
 
-Example showing how to get versioned `BuildRequires:` and `Requires:` out of a
-spec file:
+Example showing how to get versioned `BuildRequires:` and `Requires:` out of a spec file:
 
 ```python
 from pyrpm.spec import Spec
@@ -118,8 +108,7 @@ for br in spec.build_requires:
 # cmake(Qt5Network) >= 5.6.0
 ```
 
-If you want that the library [create warnings](https://docs.python.org/3/library/warnings.html) during parsing, for example on
-unknown macros, set `warnings_enabled` to `True`:
+If you want that the library [create warnings](https://docs.python.org/3/library/warnings.html) during parsing, for example on unknown macros, set `warnings_enabled` to `True`:
 
 ```python
 import pyrpm.spec
@@ -130,22 +119,25 @@ pyrpm.spec.warnings_enabled = True
 
 ## Dependencies
 
-Except Python 3 no extra dependencies are required.
+No extra dependencies are required except for Python 3.7 or newer.
 
 ## Current status
 
-This library does not parse everything of a spec file. Only the pieces I needed.
-So there is probably still plenty of stuff missing. However, it should not be
-terribly complicated to add support for the missing pieces.
+This library is an ambitious Python script that became a library. It is not complete and it does not fit every use case.
+
+- It is probably very slow and it relies on regular expressions for parsing.
+- It does not parse everything in a spec file, only the pieces myself and others needed so far.
+
+So there is probably still plenty of stuff missing (i.e. support for [`%include`](https://github.com/bkircher/python-rpm-spec/issues/51)). However, it should not be too complicated to add support for the missing pieces.
 
 ## Alternatives
 
-For alternatives to this library you might want to take a look at:
+Here is a list of alternatives to this library:
 
-- [packit/specfile](https://github.com/packit/specfile) - Allows parsing and, different to python-rpm-spec, the manipulation of spec files. Still very young but looks promising and seems actively developed (as of Jan 2023).
-- If you are on a Linux system that has the RPM package manager packaged, consider using system tools like
-  - `/usr/bin/rpmspec` from rpm-build package
-  - `/usr/bin/spectool` from rpmdevtools package
+- [packit/specfile](https://github.com/packit/specfile) - Allows parsing and, different to python-rpm-spec, the manipulation of spec files. Part of packit. Actively developed as of Mar 2023.
+- If you are on a Linux system that has the RPM package manager installed, consider using system tools like
+  - `rpmspec(8)` from rpm-build package. Example: `rpmspec --parse foo.spec` will parse a spec file to stdout, expanding all the macros installed on the system. Still relies on `$HOME/rpmbuild` to work.
+  - `rpmdev-spectool(1)` from rpmdevtools package. Example: `spectool --get-files foo.spec` will download all sources and patches from a spec file.
 
   The parsers are probably more up to date and less buggy than this library.
 
@@ -163,9 +155,11 @@ pytest  # Execute all tests
 pytest --mypy  # Run the type checker
 ```
 
+That's it.
+
 ## Further references
 
-Take a look at the excellent [RPM Packaging Guide](https://rpm-guide.readthedocs.io/en/latest/index.html), especially the section
-[What is a SPEC File?](https://rpm-guide.readthedocs.io/en/latest/rpm-guide.html#what-is-a-spec-file)
+- [RPM project documentation](https://rpm.org/documentation.html) with a couple of links to books or Fedora project documentation.
+- Take a look at the excellent [RPM Packaging Guide](https://rpm-guide.readthedocs.io/en/latest/index.html), especially the section [What is a SPEC File?](https://rpm-guide.readthedocs.io/en/latest/rpm-guide.html#what-is-a-spec-file)
 
 Happy hacking!
