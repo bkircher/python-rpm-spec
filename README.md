@@ -150,7 +150,7 @@ git clone https://github.com/bkircher/python-rpm-spec.git  # Clone the repo
 cd python-rpm-spec  # Change into the source directory
 python3 -m venv .venv  # Create a virtual environment
 source .venv/bin/activate  # Activate it
-pip install -r dev-requirements.txt  # Install dependencies for development
+pip install -r requirements.txt  # Install dependencies for development
 pytest  # Execute all tests
 pytest --mypy  # Run the type checker
 ```
