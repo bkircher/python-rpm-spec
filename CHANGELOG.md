@@ -1,5 +1,7 @@
 # Changelog
 
+## 0.15.0 (YYYY-MM-DD)
+
 ## 0.14.1 (2023-03-11)
 
 * Fix replace_macro's behavior with user-defined conditional macros (PR [#56](https://github.com/bkircher/python-rpm-spec/pull/59)). Thanks [@imphil](https://github.com/imphil).
