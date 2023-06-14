@@ -12,6 +12,7 @@ add support for the missing pieces.
 
 import os
 import re
+import subprocess
 import sys
 from warnings import warn
 from abc import ABCMeta, abstractmethod
@@ -255,38 +256,38 @@ class _DummyMacroDef(_Tag):
             warn("Unknown macro: " + line)
         return spec_obj, context
 
-
 _tags = [
-    _NameValue("name", re_tag_compile(r"^Name\s*:\s*(\S+)")),
-    _NameValue("version", re_tag_compile(r"^Version\s*:\s*(\S+)")),
-    _NameValue("epoch", re_tag_compile(r"^Epoch\s*:\s*(\S+)")),
-    _NameValue("release", re_tag_compile(r"^Release\s*:\s*(\S+)")),
-    _NameValue("summary", re_tag_compile(r"^Summary\s*:\s*(.+)")),
-    _NameValue("description", re_tag_compile(r"^%description\s*(\S*)")),
-    _NameValue("changelog", re_tag_compile(r"^%changelog\s*(\S*)")),
-    _NameValue("license", re_tag_compile(r"^License\s*:\s*(.+)")),
-    _NameValue("group", re_tag_compile(r"^Group\s*:\s*(.+)")),
-    _NameValue("url", re_tag_compile(r"^URL\s*:\s*(\S+)")),
-    _NameValue("buildroot", re_tag_compile(r"^BuildRoot\s*:\s*(\S+)")),
-    _SplitValue("buildarch", re_tag_compile(r"^BuildArch\s*:\s*(\S+)")),
-    _SplitValue("excludearch", re_tag_compile(r"^ExcludeArch\s*:\s*(.+)")),
-    _SplitValue("exclusivearch", re_tag_compile(r"^ExclusiveArch\s*:\s*(.+)")),
-    _ListAndDict("sources", re_tag_compile(r"^(Source\d*\s*):\s*(.+)")),
-    _ListAndDict("patches", re_tag_compile(r"^(Patch\d*\s*):\s*(\S+)")),
-    _List("build_requires", re_tag_compile(r"^BuildRequires\s*:\s*(.+)")),
-    _List("requires", re_tag_compile(r"^Requires\s*:\s*(.+)")),
-    _List("conflicts", re_tag_compile(r"^Conflicts\s*:\s*(.+)")),
-    _List("obsoletes", re_tag_compile(r"^Obsoletes\s*:\s*(.+)")),
-    _List("provides", re_tag_compile(r"^Provides\s*:\s*(.+)")),
-    _List("packages", re_tag_compile(r"^%package\s+(\S+)")),
-    _MacroDef("define", re_tag_compile(r"^%define\s+(\S+)\s+(\S+)")),
-    _MacroDef("global", re_tag_compile(r"^%global\s+(\S+)\s+(\S+)")),
+    _NameValue("name", re_tag_compile(r"^Name\s*:\s*(.+)$")),
+    _NameValue("version", re_tag_compile(r"^Version\s*:\s*(.+)$")),
+    _NameValue("epoch", re_tag_compile(r"^Epoch\s*:\s*(.+)$")),
+    _NameValue("release", re_tag_compile(r"^Release\s*:\s*(.+)$")),
+    _NameValue("summary", re_tag_compile(r"^Summary\s*:\s*(.+)$")),
+    _NameValue("description", re_tag_compile(r"^%description\s*(.*)$")),
+    _NameValue("changelog", re_tag_compile(r"^%changelog\s*(.*)$")),
+    _NameValue("license", re_tag_compile(r"^License\s*:\s*(.+)$")),
+    _NameValue("group", re_tag_compile(r"^Group\s*:\s*(.+)$")),
+    _NameValue("url", re_tag_compile(r"^URL\s*:\s*(.+)$")),
+    _NameValue("buildroot", re_tag_compile(r"^BuildRoot\s*:\s*(.+)$")),
+    _SplitValue("buildarch", re_tag_compile(r"^BuildArch\s*:\s*(.+)$")),
+    _SplitValue("excludearch", re_tag_compile(r"^ExcludeArch\s*:\s*(.+)$")),
+    _SplitValue("exclusivearch", re_tag_compile(r"^ExclusiveArch\s*:\s*(.+)$")),
+    _ListAndDict("sources", re_tag_compile(r"^(Source\d*\s*):\s*(.+)$")),
+    _ListAndDict("patches", re_tag_compile(r"^(Patch\d*\s*):\s*(.+)$")),
+    _List("build_requires", re_tag_compile(r"^BuildRequires\s*:\s*(.+)$")),
+    _List("requires", re_tag_compile(r"^Requires\s*:\s*(.+)$")),
+    _List("conflicts", re_tag_compile(r"^Conflicts\s*:\s*(.+)$")),
+    _List("obsoletes", re_tag_compile(r"^Obsoletes\s*:\s*(.+)$")),
+    _List("provides", re_tag_compile(r"^Provides\s*:\s*(.+)$")),
+    _List("packages", re_tag_compile(r"^%package\s+(.+)$")),
+    _MacroDef("define", re_tag_compile(r"^%define\s+(\S+)\s+(.+)$")),
+    _MacroDef("global", re_tag_compile(r"^%global\s+(\S+)\s+(.+)$")),
     _DummyMacroDef("dummy", re_tag_compile(r"^%[a-z_]+\b.*$")),
 ]
 
 _tag_names = [tag.name for tag in _tags]
 
 _macro_pattern = re.compile(r"%{(\S+?)\}|%(\w+?)\b")
+_macro_command_pattern = re.compile(r"%\((.+)\)")
 
 
 def _parse(spec_obj: "Spec", context: Dict[str, Any], line: str) -> Any:
@@ -551,13 +552,23 @@ def replace_macros(string: str, spec: Spec) -> str:
                 return str(value)
 
         return match.string[match.start() : match.end()]
+    def evaluate_command(match: re.Match) -> str:
+        cmd = replace_macros(match.group(1), spec)
+        return subprocess.run(cmd, shell=True, capture_output=True).stdout.decode('utf-8').strip("\n")
 
     # Recursively expand macros
     # Note: If macros are not defined in the spec file, this won't try to
     # expand them.
     while True:
+        again = False
         ret = re.sub(_macro_pattern, get_replacement_string, string)
         if ret != string:
             string = ret
+            again = True
+        ret = re.sub(_macro_command_pattern, evaluate_command, string)
+        if ret != string:
+            string = ret
+            again = True
+        if again:
             continue
         return ret
