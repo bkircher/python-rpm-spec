@@ -485,7 +485,7 @@ class Spec:
         return spec
 
 
-def replace_macros(string: str, spec: Spec) -> str:
+def replace_macros(string: str, spec: Spec, max_attempts: int = 1000) -> str:
     """Replace all macros in given string with corresponding values.
 
     For example, a string '%{name}-%{version}.tar.gz' will be transformed to 'foo-2.0.tar.gz'.
@@ -550,9 +550,13 @@ def replace_macros(string: str, spec: Spec) -> str:
     # Recursively expand macros
     # Note: If macros are not defined in the spec file, this won't try to
     # expand them.
-    while True:
+    attempt = 0
+    ret = ""
+    while attempt < max_attempts:
+        attempt += 1
         ret = re.sub(_macro_pattern, get_replacement_string, string)
         if ret != string:
             string = ret
             continue
-        return ret
+        break
+    return ret
