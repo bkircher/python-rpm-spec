@@ -10,3 +10,7 @@ author-email = "bkircher@0xadd.de"
 home-page = "https://github.com/bkircher/python-rpm-spec"
 requires-python = ">=3.8"
 description-file = "README.md"
+
+[tool.ruff]
+target-version = "py312"
+line-length = 130
