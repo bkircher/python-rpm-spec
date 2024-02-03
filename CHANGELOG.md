@@ -2,6 +2,7 @@
 
 ## 0.15.0 (YYYY-MM-DD)
 
+* Add support for Python 3.12.
 * Drop support for Python 3.7. It is EOL and no longer supported by the Python core team.
 
 ## 0.14.1 (2023-03-11)
