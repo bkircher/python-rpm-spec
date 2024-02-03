@@ -1,13 +1,15 @@
 {
-    "python.formatting.provider": "black",
-    "python.formatting.blackArgs": [
+    "[python]": {
+        "editor.defaultFormatter": "ms-python.black-formatter",
+        "editor.rulers": [
+            130
+        ],
+    },
+    "black-formatter.args": [
         "--line-length",
         "130",
         "--target-version",
         "py312"
-    ],
-    "editor.rulers": [
-        130
     ],
     "python.testing.pytestArgs": [
         "tests",
@@ -16,5 +18,4 @@
     "python.testing.pytestEnabled": true,
     "python.testing.autoTestDiscoverOnSaveEnabled": true,
     "editor.formatOnSaveMode": "modifications",
-    "python.linting.pylintEnabled": true,
 }
