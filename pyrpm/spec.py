@@ -172,7 +172,7 @@ class _List(_Tag):
             #   Requires: a, b >= 3.1, c
 
             # 1. Tokenize
-            tokens = [val for val in re.split("[\t\n, ]", value) if val != ""]
+            tokens = [val for val in re.split("[\t\n, ]", value) if val]
             values: List[str] = []
 
             # 2. Join
