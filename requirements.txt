@@ -4,6 +4,5 @@ flit==3.9.0
 mypy==1.8.0
 pylint==3.0.3
 pytest-cov==4.1.0
-pytest-mypy==0.10.3
 pytest==8.0.0
 rope==1.12.0
