@@ -15,7 +15,7 @@ skipfiles = (
 )
 
 
-def skip(filename):
+def skip(filename: str) -> bool:
     if filename in skipfiles:
         return True
 
