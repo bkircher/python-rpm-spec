@@ -152,7 +152,7 @@ python3 -m venv .venv  # Create a virtual environment
 source .venv/bin/activate  # Activate it
 pip install -r requirements.txt  # Install dependencies for development
 pytest  # Execute all tests
-pytest --mypy  # Run the type checker
+mypy . # Run the type checker
 ```
 
 That's it.
