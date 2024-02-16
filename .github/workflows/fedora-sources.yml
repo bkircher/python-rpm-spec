@@ -1,0 +1,33 @@
+name: Run on Fedora sources
+on:
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: 3.12
+          cache: pip
+
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt
+
+      - name: Fetch rpm-specs-latest tarball
+        run: |
+          curl -s https://src.fedoraproject.org/lookaside/rpm-specs-latest.tar.xz --output /tmp/rpm-specs-latest.tar.xz
+          mkdir fedora-latest
+          tar -xvf /tmp/rpm-specs-latest.tar.xz -C fedora-latest
+
+      - name: Parse Fedora package sources
+        run: |
+          PYTHONPATH=. python scripts/fedora_sources.py fedora-latest
+
