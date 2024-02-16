@@ -1,4 +1,4 @@
-black==24.1.1
+black==24.2.0
 coverage==7.4.1
 flit==3.9.0
 mypy==1.8.0
