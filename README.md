@@ -136,12 +136,12 @@ So there is probably still plenty of stuff missing (i.e. support for [`%include`
 
 Here is a list of alternatives to this library:
 
-- [packit/specfile](https://github.com/packit/specfile) - Allows parsing and, different to python-rpm-spec, the manipulation of spec files. Part of packit. Actively developed as of Mar 2023.
+- [packit/specfile](https://github.com/packit/specfile) - Allows parsing and, different to python-rpm-spec, the manipulation of spec files. Part of packit. Actively developed as of March 2023.
 - If you are on a Linux system that has the RPM package manager installed, consider using system tools like
   - `rpmspec(8)` from rpm-build package. Example: `rpmspec --parse foo.spec` will parse a spec file to stdout, expanding all the macros installed on the system. Still relies on `$HOME/rpmbuild` to work.
   - `rpmdev-spectool(1)` from rpmdevtools package. Example: `spectool --get-files foo.spec` will download all sources and patches from a spec file.
 
-  The parsers are probably more up to date and less buggy than this library.
+  The parsers of those system tools are probably more up to date and less buggy than this library.
 
 ## Development
 
@@ -157,7 +157,7 @@ pytest  # Execute all tests
 mypy . # Run the type checker
 ```
 
-That's it.
+That's it. Make sure to check out the [issue tracker](https://github.com/bkircher/python-rpm-spec/issues) for things to work on or open a [new issue](https://github.com/bkircher/python-rpm-spec/issues/new/choose) to let others know that you are working on.
 
 ## Further references
 
