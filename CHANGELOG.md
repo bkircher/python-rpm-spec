@@ -2,6 +2,7 @@
 
 ## 0.15.0 (YYYY-MM-DD)
 
+* Add a [GitHub workflow](https://github.com/bkircher/python-rpm-spec/actions/workflows/fedora-sources.yml) that parses all of Fedora's spec files. The workflow runs on each PR.
 * Add support for Python 3.12.
 * Drop support for Python 3.7. It is EOL and no longer supported by the Python core team.
 
