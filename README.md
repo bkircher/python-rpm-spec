@@ -132,6 +132,8 @@ This library is an ambitious Python script that became a library. It is not comp
 
 So there is probably still plenty of stuff missing (i.e. support for [`%include`](https://github.com/bkircher/python-rpm-spec/issues/51)). However, it should not be too complicated to add support for the missing pieces.
 
+Also note that there is a [GitHub workflow](https://github.com/bkircher/python-rpm-spec/actions/workflows/fedora-sources.yml) that runs the parser on Fedora's spec files.
+
 ## Alternatives
 
 Here is a list of alternatives to this library:
@@ -157,7 +159,7 @@ pytest  # Execute all tests
 mypy . # Run the type checker
 ```
 
-That's it. Make sure to check out the [issue tracker](https://github.com/bkircher/python-rpm-spec/issues) for things to work on or open a [new issue](https://github.com/bkircher/python-rpm-spec/issues/new/choose) to let others know that you are working on.
+That's it. Make sure to check out the [issue tracker](https://github.com/bkircher/python-rpm-spec/issues) for things to work on or open a [new issue](https://github.com/bkircher/python-rpm-spec/issues/new/choose) to let others know what you are working on.
 
 ## Further references
 
