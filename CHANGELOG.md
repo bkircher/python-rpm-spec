@@ -1,8 +1,9 @@
 # Changelog
 
-## 0.15.0 (YYYY-MM-DD)
+## 0.15.0 (2024-02-17)
 
 * Add a [GitHub workflow](https://github.com/bkircher/python-rpm-spec/actions/workflows/fedora-sources.yml) that parses all of Fedora's spec files. The workflow runs on each PR.
+* The `replace_macro` function gained a new `max_attempts` parameter that prevents endless recursion in certain scenarios. Thanks [@kraptor](https://github.com/kraptor).
 * Add support for Python 3.12.
 * Drop support for Python 3.7. It is EOL and no longer supported by the Python core team.
 
