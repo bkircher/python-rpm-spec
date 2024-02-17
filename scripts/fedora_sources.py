@@ -4,15 +4,8 @@ import sys
 from pyrpm.spec import Spec
 
 
-# Spec files to skip because of known issues. All of the following end up in an
-# endless loop
-skipfiles = (
-    "cairo-dock.spec",
-    "ghc",
-    "libreoffice.spec",
-    "python-pyghmi.spec",
-    "xscreensaver.spec",
-)
+# Spec files to skip because of known issues.
+skipfiles = ()
 
 
 def skip(filename: str) -> bool:
