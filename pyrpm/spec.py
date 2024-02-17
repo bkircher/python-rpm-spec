@@ -163,8 +163,6 @@ class _List(_Tag):
         ]:
             # Remove comments on same line
             value = value.split("#", 2)[0].rstrip()
-            # Macros are valid in requirements
-            value = replace_macros(value, spec=spec_obj)
 
             # It's also legal to do:
             #   Requires: a b c
