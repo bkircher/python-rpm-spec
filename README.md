@@ -3,7 +3,7 @@
 [![pytest status](https://github.com/bkircher/python-rpm-spec/actions/workflows/test.yml/badge.svg)](https://github.com/bkircher/python-rpm-spec/actions/workflows/test.yml)
 [![PyPI version](https://badge.fury.io/py/python-rpm-spec.svg)](https://badge.fury.io/py/python-rpm-spec)
 
-python-rpm-spec is a Python library for parsing RPM spec files.
+python-rpm-spec is a Python-only library for parsing RPM spec files.
 
 *tl;dr* If you want to quickly parse a spec file on the command line you might want to give `rpmspec --parse` a try.
 
@@ -44,6 +44,8 @@ pip install python-rpm-spec
 in your virtual environment.
 
 ## Examples
+
+The libraries main API objects are the `Spec` object, representing an entire spec file and the `replace_macros` function which is used to expand macro's into the final string values.
 
 This is how you access a spec file's various definitions:
 
