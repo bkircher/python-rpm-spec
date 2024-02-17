@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.16.0 (YYYY-MM-DD)
+
+* Add something…
+
 ## 0.15.0 (2024-02-17)
 
 * Add a [GitHub workflow](https://github.com/bkircher/python-rpm-spec/actions/workflows/fedora-sources.yml) that parses all of Fedora's spec files. The workflow runs on each PR.
