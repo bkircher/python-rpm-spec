@@ -492,6 +492,7 @@ def replace_macros(string: str, spec: Spec, max_attempts: int = 1000) -> str:
 
     :param string A string containing macros that you want to be replaced.
     :param spec A Spec object. Definitions in that spec file will be used to replace macros.
+    :param max_attempts If reached, raises a RuntimeError.
 
     :return A string where all macros in given input are substituted as good as possible.
 
@@ -547,7 +548,7 @@ def replace_macros(string: str, spec: Spec, max_attempts: int = 1000) -> str:
 
         return match.string[match.start() : match.end()]
 
-    # Recursively expand macros
+    # Recursively expand macros.
     # Note: If macros are not defined in the spec file, this won't try to
     # expand them.
     attempt = 0
@@ -558,5 +559,6 @@ def replace_macros(string: str, spec: Spec, max_attempts: int = 1000) -> str:
         if ret != string:
             string = ret
             continue
-        break
-    return ret
+        return ret
+
+    raise RuntimeError("max_attempts reached. Aborting")

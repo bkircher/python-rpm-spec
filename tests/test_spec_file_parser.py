@@ -197,6 +197,21 @@ Release: 1%{?dist}
         spec.macros["dist"] = ".el8"
         assert replace_macros(f"{spec.name}-{spec.version}-{spec.release}.src.rpm", spec) == "foo-1-1.el8.src.rpm"
 
+    def test_replace_macro_raises_with_max_attempts_reached(self) -> None:
+        """Test that replace_macros accepts a max_attempts
+
+        Make sure that replace_macros raises RuntimeError if max_attempts is reached.
+
+        """
+        spec = Spec.from_string(
+            r"""
+%global version 1
+Version: %{version}
+        """
+        )
+        with pytest.raises(RuntimeError):
+            replace_macros(spec.version, spec, max_attempts=1)
+
     def test_requirement_parsing(self) -> None:
         spec = Spec.from_file(os.path.join(TEST_DATA, "attica-qt5.spec"))
 
