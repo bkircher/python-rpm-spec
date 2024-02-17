@@ -45,7 +45,7 @@ in your virtual environment.
 
 ## Examples
 
-The libraries main API objects are the `Spec` object, representing an entire spec file and the `replace_macros` function which is used to expand macro's into the final string values.
+The libraries main API objects are the `Spec` object, representing an entire spec file and the `replace_macros` function which is used to expand macro's into absolute string values.
 
 This is how you access a spec file's various definitions:
 
@@ -121,7 +121,7 @@ pyrpm.spec.warnings_enabled = True
 
 ## Dependencies
 
-No extra dependencies are required except for Python 3.7 or newer.
+No extra dependencies are required except for Python 3.8 or newer.
 
 ## Current status
 
