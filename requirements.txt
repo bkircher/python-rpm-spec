@@ -3,6 +3,6 @@ coverage==7.4.1
 flit==3.9.0
 mypy==1.8.0
 pylint==3.0.3
-pytest-cov==4.1.0
+pytest-cov==5.0.0
 pytest==8.0.0
 rope==1.12.0
