@@ -2,7 +2,8 @@
 
 ## 0.16.0 (YYYY-MM-DD)
 
-* Add something…
+* Add support for Python 3.13.
+* Drop support for Python 3.8 version.
 
 ## 0.15.0 (2024-02-17)
 
