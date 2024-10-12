@@ -27,11 +27,11 @@ All [current Python branches](https://devguide.python.org/versions/#versions) ar
 
 | Python Version | Supported Until |
 | :------------- | --------------: |
+| 3.13           | 2029-10         |
 | 3.12           | 2028-10         |
 | 3.11           | 2027-10         |
 | 3.10           | 2026-10         |
 | 3.9            | 2025-10         |
-| 3.8            | 2024-10         |
 
 ## Install
 
