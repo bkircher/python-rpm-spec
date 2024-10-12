@@ -1,0 +1,15 @@
+version: 2
+updates:
+  - package-ecosystem: "pip"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    assignees:
+      - "bkircher"
+    ignore:
+      - dependency-name: "black"
+    groups:
+      minor-and-patch-updates:
+        update-types:
+          - "minor"
+          - "patch"
