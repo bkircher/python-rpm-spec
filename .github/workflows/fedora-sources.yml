@@ -30,4 +30,3 @@ jobs:
       - name: Parse Fedora package sources
         run: |
           PYTHONPATH=. python scripts/fedora_sources.py fedora-latest
-
