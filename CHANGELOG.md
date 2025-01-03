@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.16.0 (YYYY-MM-DD)
+## 0.16.0 (2025-01-03)
 
 - Add support for Python 3.13.
 - Drop support for Python 3.8 version.
