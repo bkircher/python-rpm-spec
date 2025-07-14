@@ -5,4 +5,4 @@ mypy==1.16.1
 pylint==3.3.7
 pytest-cov==6.2.1
 pytest==8.4.1
-rope==1.13.0
+rope==1.14.0
