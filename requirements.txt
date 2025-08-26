@@ -1,5 +1,5 @@
 black==24.10.0
-coverage==7.10.3
+coverage==7.10.5
 flit==3.12.0
 mypy==1.17.1
 pylint==3.3.8
