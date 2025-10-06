@@ -2,7 +2,7 @@ black==24.10.0
 coverage==7.10.7
 flit==3.12.0
 mypy==1.18.2
-pylint==3.3.8
+pylint==3.3.9
 pytest-cov==7.0.0
 pytest==8.4.2
 rope==1.14.0
