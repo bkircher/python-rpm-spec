@@ -8,7 +8,15 @@ import os
 import re
 from warnings import warn
 from abc import ABCMeta, abstractmethod
-from typing import Any, AnyStr, Dict, List, Optional, Union, Tuple, Type, cast
+from typing import Any, AnyStr, Callable, Dict, List, Optional, Tuple, Type, TypeVar, Union, cast
+
+F = TypeVar("F", bound=Callable[..., Any])
+
+try:
+    from typing import override  # type: ignore[attr-defined]
+except ImportError:
+    def override(func: F, /) -> F:
+        return func
 
 __all__ = ["Spec", "replace_macros", "Package", "warnings_enabled"]
 
@@ -352,6 +360,7 @@ class Requirement:
             self.operator = None
             self.version = None
 
+    @override
     def __eq__(self, o: object) -> bool:
         if isinstance(o, str):
             return self.line == o
@@ -359,6 +368,7 @@ class Requirement:
             return self.name == o.name and self.operator == o.operator and self.version == o.version
         return False
 
+    @override
     def __repr__(self) -> str:
         return f"Requirement('{self.line}')"
 
@@ -428,6 +438,7 @@ class Package:
         self.name = name
         self.is_subpackage = False
 
+    @override
     def __repr__(self) -> str:
         return f"Package('{self.name}')"
 
