@@ -1,5 +1,6 @@
-import re
 import os.path
+import re
+from typing import cast
 
 import pytest
 
@@ -160,9 +161,9 @@ class TestSpecFileParser:
             ("_tar_path", "5.31"),
         ):
             assert hasattr(spec, define)
-            value = getattr(spec, define)
-            assert isinstance(value, str)
-            assert value == expected
+            attr = cast(object, getattr(spec, define))
+            assert isinstance(attr, str)
+            assert attr == expected
 
     def test_replace_macro_that_is_tag_name(self) -> None:
         """Test that we are able to replace macros which are in the tag list.
@@ -242,7 +243,7 @@ Version: %{version}
         )
         assert spec.version is not None
         with pytest.raises(RuntimeError):
-            replace_macros(spec.version, spec, max_attempts=1)
+            _ = replace_macros(spec.version, spec, max_attempts=1)
 
     def test_requirement_parsing(self) -> None:
         spec = Spec.from_file(os.path.join(TEST_DATA, "attica-qt5.spec"))
@@ -340,7 +341,7 @@ class TestReplaceMacro:
         """Make sure to assert that caller passes a spec file."""
 
         with pytest.raises(AssertionError):
-            replace_macros("something something", spec=None)  # pyright: ignore[reportArgumentType]
+            _ = replace_macros("something something", spec=None)  # pyright: ignore[reportArgumentType]
 
     def test_replace_unknown_section(self) -> None:
         """Ensure that we can print warnings during parsing."""
@@ -348,7 +349,7 @@ class TestReplaceMacro:
         try:
             pyrpm.spec.warnings_enabled = True
             with pytest.warns(UserWarning):
-                Spec.from_file(os.path.join(TEST_DATA, "perl-Array-Compare.spec"))
+                _ = Spec.from_file(os.path.join(TEST_DATA, "perl-Array-Compare.spec"))
         finally:
             pyrpm.spec.warnings_enabled = False
 

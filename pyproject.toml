@@ -17,3 +17,4 @@ line-length = 130
 
 [tool.basedpyright]
 reportExplicitAny = false
+reportUnreachable = false
