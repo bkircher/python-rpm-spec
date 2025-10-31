@@ -7,6 +7,7 @@ This module allows to parse RPM spec files and gives simple access to various bi
 from __future__ import annotations
 
 import os
+import sys
 import re
 from warnings import warn
 from abc import ABC, ABCMeta, abstractmethod
@@ -14,12 +15,15 @@ from typing import Any, Callable, TypeVar, cast
 
 F = TypeVar("F", bound=Callable[..., Any])
 
-try:
-    from typing import override  # type: ignore[attr-defined]
-except ImportError:
+if sys.version_info >= (3, 12):
+    from typing import override
+else:
+    try:
+        from typing_extensions import override
+    except ImportError:
 
-    def override(func: F, /) -> F:
-        return func
+        def override(func: F, /) -> F:
+            return func
 
 
 __all__ = ["Spec", "replace_macros", "Package", "warnings_enabled"]
