@@ -45,3 +45,12 @@ jobs:
       - name: Run linter
         run: |
           pylint --rcfile=.pylintrc pyrpm
+
+  check-spelling:
+    runs-on: ubuntu-latest
+    name: Spell check source files
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Check for spelling mistakes
+        uses: crate-ci/typos@v1.36.2

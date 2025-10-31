@@ -1,0 +1,4 @@
+# .typos.toml (https://github.com/crate-ci/typos)
+
+[files]
+extend-exclude = ["tests/**/*.spec"]
