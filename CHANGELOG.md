@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.x.y (YYYY-MM-DD)
+
+- Add support for Python 3.14.
+- Drop support for Python 3.9 version.
+
 ## 0.16.0 (2025-01-03)
 
 - Add support for Python 3.13.
