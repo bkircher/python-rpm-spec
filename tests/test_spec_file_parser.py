@@ -153,15 +153,16 @@ class TestSpecFileParser:
     def test_defines(self) -> None:
         spec = Spec.from_file(os.path.join(TEST_DATA, "attica-qt5.spec"))
 
-        # Check if they exist
-        for define in ("sonum", "_tar_path", "_libname", "rname"):
+        for define, expected in (
+            ("sonum", "5"),
+            ("rname", "attica"),
+            ("_libname", "KF5Attica"),
+            ("_tar_path", "5.31"),
+        ):
             assert hasattr(spec, define)
-
-        # Check values
-        assert spec.sonum == "5"
-        assert spec.rname == "attica"
-        assert spec._libname == "KF5Attica"
-        assert spec._tar_path == "5.31"
+            value = getattr(spec, define)
+            assert isinstance(value, str)
+            assert value == expected
 
     def test_replace_macro_that_is_tag_name(self) -> None:
         """Test that we are able to replace macros which are in the tag list.
@@ -175,6 +176,7 @@ class TestSpecFileParser:
 Version: %{myversion}
         """
         )
+        assert spec.version is not None
         assert replace_macros(spec.version, spec) == "1.2.3"
 
         spec = Spec.from_string(
@@ -183,6 +185,7 @@ Version: %{myversion}
 Version: %{version}
         """
         )
+        assert spec.version is not None
         assert replace_macros(spec.version, spec) == "1.2.3"
 
     def test_custom_conditional_macro(self) -> None:
@@ -195,6 +198,9 @@ Release: 1%{?dist}
         """
         )
         spec.macros["dist"] = ".el8"
+        assert spec.name is not None
+        assert spec.version is not None
+        assert spec.release is not None
         assert replace_macros(f"{spec.name}-{spec.version}-{spec.release}.src.rpm", spec) == "foo-1-1.el8.src.rpm"
 
     def test_macro_appends_to_itself(self) -> None:
@@ -206,6 +212,7 @@ Release: 1%{?dist}
 Release: 1%{flagrel}
             """
         )
+        assert spec.release is not None
         assert replace_macros(spec.release, spec) == "1.SAN"
 
     def test_macro_conditional_expands_when_inputs_ready(self) -> None:
@@ -218,6 +225,7 @@ Release: 1%{extra}
             """
         )
         assert spec.macros["extra"] == "%{?debug:.DEBUG}"
+        assert spec.release is not None
         assert replace_macros(spec.release, spec) == "1.DEBUG"
 
     def test_replace_macro_raises_with_max_attempts_reached(self) -> None:
@@ -232,6 +240,7 @@ Release: 1%{extra}
 Version: %{version}
         """
         )
+        assert spec.version is not None
         with pytest.raises(RuntimeError):
             replace_macros(spec.version, spec, max_attempts=1)
 
@@ -331,7 +340,7 @@ class TestReplaceMacro:
         """Make sure to assert that caller passes a spec file."""
 
         with pytest.raises(AssertionError):
-            replace_macros("something something", spec=None)
+            replace_macros("something something", spec=None)  # pyright: ignore[reportArgumentType]
 
     def test_replace_unknown_section(self) -> None:
         """Ensure that we can print warnings during parsing."""
