@@ -1,12 +1,6 @@
 """Python module for parsing RPM spec files.
 
-RPMs are build from a package's sources along with a spec file. The spec file controls how the RPM
-is built. This module allows you to parse spec files and gives you simple access to various bits of
-information that is contained in the spec file.
-
-Current status: This module does not parse everything of a spec file. Only the pieces I needed. So
-there is probably still plenty of stuff missing. However, it should not be terribly complicated to
-add support for the missing pieces.
+This module allows to parse RPM spec files and gives simple access to various bits of information contained in the spec file.
 
 """
 
@@ -125,10 +119,15 @@ class _MacroDef(_Tag):
 
     def update_impl(self, spec_obj: "Spec", context: Dict[str, Any], match_obj: re.Match, line: str) -> Tuple["Spec", dict]:
         name, value = match_obj.groups()
-        spec_obj.macros[name] = str(value)
+        raw_value = str(value)
+        try:
+            expanded_value = replace_macros(raw_value, spec_obj)
+        except RuntimeError:
+            expanded_value = raw_value
+        spec_obj.macros[name] = expanded_value
         if name not in _tag_names:
             # Also make available as attribute of spec object
-            setattr(spec_obj, name, str(value))
+            setattr(spec_obj, name, expanded_value)
         return spec_obj, context
 
 
@@ -436,7 +435,7 @@ class Spec:
 
         self.sources_dict: Dict[str, str] = {}
         self.patches_dict: Dict[str, str] = {}
-        self.macros: Dict[str, str] = {}
+        self.macros: Dict[str, str] = {"nil": ""}
 
         self.name: Optional[str]
         self.packages: List[Package] = []
@@ -485,6 +484,9 @@ class Spec:
 
 def replace_macros(string: str, spec: Spec, max_attempts: int = 1000) -> str:
     """Replace all macros in given string with corresponding values.
+
+    Note: If macros are not defined in the spec file, this won't try to
+    expand them.
 
     For example, a string '%{name}-%{version}.tar.gz' will be transformed to 'foo-2.0.tar.gz'.
 
@@ -537,18 +539,15 @@ def replace_macros(string: str, spec: Spec, max_attempts: int = 1000) -> str:
                 if len(parts) == 2:
                     return parts[1]
 
-                return spec.macros.get(macro, getattr(spec, macro))
+                return spec.macros.get(macro, getattr(spec, macro, ""))
 
         if spec:
             value = spec.macros.get(macro_name, getattr(spec, macro_name, None))
-            if value:
+            if value is not None:
                 return str(value)
 
         return match.string[match.start() : match.end()]
 
-    # Recursively expand macros.
-    # Note: If macros are not defined in the spec file, this won't try to
-    # expand them.
     attempt = 0
     ret = ""
     while attempt < max_attempts:

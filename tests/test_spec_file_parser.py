@@ -12,7 +12,7 @@ TEST_DATA = os.path.join(os.path.dirname(os.path.realpath(__file__)), "data")
 # pylint: disable=protected-access
 
 
-def camel_to_snake(name):
+def camel_to_snake(name: str):
     name = re.sub("(.)([A-Z][a-z]+)", r"\1_\2", name)
     return re.sub("([a-z0-9])([A-Z])", r"\1_\2", name).lower()
 
@@ -111,7 +111,7 @@ class TestSpecFileParser:
             assert name in actual
 
     @pytest.mark.parametrize("element", ["BuildRequires", "Requires", "Conflicts", "Obsoletes", "Provides"])
-    def test_end_of_line_comment_in_list(self, element):
+    def test_end_of_line_comment_in_list(self, element: str):
         spec = Spec.from_string(
             f"""
 {element}:  a
@@ -196,6 +196,17 @@ Release: 1%{?dist}
         )
         spec.macros["dist"] = ".el8"
         assert replace_macros(f"{spec.name}-{spec.version}-{spec.release}.src.rpm", spec) == "foo-1-1.el8.src.rpm"
+
+    def test_macro_appends_to_itself(self) -> None:
+        """Macros that append to their own value should not loop endlessly."""
+        spec = Spec.from_string(
+            r"""
+%global flagrel %{nil}
+%global flagrel %{flagrel}.SAN
+Release: 1%{flagrel}
+            """
+        )
+        assert replace_macros(spec.release, spec) == "1.SAN"
 
     def test_replace_macro_raises_with_max_attempts_reached(self) -> None:
         """Test that replace_macros accepts a max_attempts
