@@ -4,19 +4,23 @@ This module allows to parse RPM spec files and gives simple access to various bi
 
 """
 
+from __future__ import annotations
+
 import os
 import re
 from warnings import warn
 from abc import ABCMeta, abstractmethod
-from typing import Any, AnyStr, Callable, Dict, List, Optional, Tuple, Type, TypeVar, Union, cast
+from typing import Any, Callable, TypeVar, cast
 
 F = TypeVar("F", bound=Callable[..., Any])
 
 try:
     from typing import override  # type: ignore[attr-defined]
 except ImportError:
+
     def override(func: F, /) -> F:
         return func
+
 
 __all__ = ["Spec", "replace_macros", "Package", "warnings_enabled"]
 
@@ -26,15 +30,15 @@ warnings_enabled: bool = False
 
 
 class _Tag(metaclass=ABCMeta):
-    def __init__(self, name: str, pattern_obj: re.Pattern, attr_type: Type[Any]) -> None:
+    def __init__(self, name: str, pattern_obj: re.Pattern[str], attr_type: type[Any]) -> None:
         self.name = name
         self.pattern_obj = pattern_obj
         self.attr_type = attr_type
 
-    def test(self, line: str) -> Optional[re.Match]:
+    def test(self, line: str) -> re.Match[str] | None:
         return re.search(self.pattern_obj, line)
 
-    def update(self, spec_obj: "Spec", context: Dict[str, Any], match_obj: re.Match, line: str) -> Any:
+    def update(self, spec_obj: Spec, context: dict[str, Any], match_obj: re.Match[str], line: str) -> Any:
         """Update given spec object and parse context and return them again.
 
         :param spec_obj: An instance of Spec class
@@ -52,11 +56,13 @@ class _Tag(metaclass=ABCMeta):
         return self.update_impl(spec_obj, context, match_obj, line)
 
     @abstractmethod
-    def update_impl(self, spec_obj: "Spec", context: Dict[str, Any], match_obj: re.Match, line: str) -> Tuple["Spec", dict]:
+    def update_impl(
+        self, spec_obj: Spec, context: dict[str, Any], match_obj: re.Match[str], line: str
+    ) -> tuple[Spec, dict[str, Any]]:
         pass
 
     @staticmethod
-    def current_target(spec_obj: "Spec", context: Dict[str, Any]) -> Union["Spec", "Package"]:
+    def current_target(spec_obj: Spec, context: dict[str, Any]) -> Spec | Package:
         target_obj = spec_obj
         if context["current_subpackage"] is not None:
             target_obj = context["current_subpackage"]
@@ -66,10 +72,12 @@ class _Tag(metaclass=ABCMeta):
 class _NameValue(_Tag):
     """Parse a simple name → value tag."""
 
-    def __init__(self, name: str, pattern_obj: re.Pattern, attr_type: Optional[Type[Any]] = None) -> None:
-        super().__init__(name, pattern_obj, cast(Type[Any], attr_type if attr_type else str))
+    def __init__(self, name: str, pattern_obj: re.Pattern[str], attr_type: type[Any] | None = None) -> None:
+        super().__init__(name, pattern_obj, cast(type[Any], attr_type if attr_type else str))
 
-    def update_impl(self, spec_obj: "Spec", context: Dict[str, Any], match_obj: re.Match, line: str) -> Tuple["Spec", dict]:
+    def update_impl(
+        self, spec_obj: Spec, context: dict[str, Any], match_obj: re.Match[str], line: str
+    ) -> tuple[Spec, dict[str, Any]]:
         if self.name == "changelog":
             context["current_subpackage"] = None
 
@@ -92,14 +100,16 @@ class _NameValue(_Tag):
 class _SetterMacroDef(_Tag):
     """Parse global macro definitions."""
 
-    def __init__(self, name: str, pattern_obj: re.Pattern) -> None:
+    def __init__(self, name: str, pattern_obj: re.Pattern[str]) -> None:
         super().__init__(name, pattern_obj, str)
 
     @abstractmethod
-    def get_namespace(self, spec_obj: "Spec", context: Dict[str, Any]) -> "Spec":
+    def get_namespace(self, spec_obj: Spec, context: dict[str, Any]) -> Spec:
         raise NotImplementedError()
 
-    def update_impl(self, spec_obj: "Spec", context: Dict[str, Any], match_obj: re.Match, line: str) -> Tuple["Spec", dict]:
+    def update_impl(
+        self, spec_obj: Spec, context: dict[str, Any], match_obj: re.Match[str], line: str
+    ) -> tuple[Spec, dict[str, Any]]:
         name, value = match_obj.groups()
         setattr(self.get_namespace(spec_obj, context), name, str(value))
         return spec_obj, context
@@ -108,24 +118,26 @@ class _SetterMacroDef(_Tag):
 class _GlobalMacroDef(_SetterMacroDef):
     """Parse global macro definitions."""
 
-    def get_namespace(self, spec_obj: "Spec", context: Dict[str, Any]) -> "Spec":
+    def get_namespace(self, spec_obj: Spec, context: dict[str, Any]) -> Spec:
         return spec_obj
 
 
 class _LocalMacroDef(_SetterMacroDef):
     """Parse define macro definitions."""
 
-    def get_namespace(self, spec_obj: "Spec", context: Dict[str, Any]) -> "Spec":
+    def get_namespace(self, spec_obj: Spec, context: dict[str, Any]) -> Spec:
         return context["current_subpackage"]
 
 
 class _MacroDef(_Tag):
     """Parse global macro definitions."""
 
-    def __init__(self, name: str, pattern_obj: re.Pattern) -> None:
+    def __init__(self, name: str, pattern_obj: re.Pattern[str]) -> None:
         super().__init__(name, pattern_obj, str)
 
-    def update_impl(self, spec_obj: "Spec", context: Dict[str, Any], match_obj: re.Match, line: str) -> Tuple["Spec", dict]:
+    def update_impl(
+        self, spec_obj: Spec, context: dict[str, Any], match_obj: re.Match[str], line: str
+    ) -> tuple[Spec, dict[str, Any]]:
         name, value = match_obj.groups()
         raw_value = str(value)
         stored_value = raw_value
@@ -151,10 +163,12 @@ def _macro_references_itself(raw_value: str, macro_name: str) -> bool:
 class _List(_Tag):
     """Parse a tag that expands to a list."""
 
-    def __init__(self, name: str, pattern_obj: re.Pattern) -> None:
+    def __init__(self, name: str, pattern_obj: re.Pattern[str]) -> None:
         super().__init__(name, pattern_obj, list)
 
-    def update_impl(self, spec_obj: "Spec", context: Dict[str, Any], match_obj: re.Match, line: str) -> Tuple["Spec", dict]:
+    def update_impl(
+        self, spec_obj: Spec, context: dict[str, Any], match_obj: re.Match[str], line: str
+    ) -> tuple[Spec, dict[str, Any]]:
         target_obj = _Tag.current_target(spec_obj, context)
 
         if not hasattr(target_obj, self.name):
@@ -187,7 +201,7 @@ class _List(_Tag):
 
             # 1. Tokenize
             tokens = [val for val in re.split("[\t\n, ]", value) if val]
-            values: List[str] = []
+            values: list[str] = []
 
             # 2. Join
             add = False
@@ -212,10 +226,12 @@ class _List(_Tag):
 class _ListAndDict(_Tag):
     """Parse a tag that expands to a list and to a dict."""
 
-    def __init__(self, name: str, pattern_obj: re.Pattern) -> None:
+    def __init__(self, name: str, pattern_obj: re.Pattern[str]) -> None:
         super().__init__(name, pattern_obj, list)
 
-    def update_impl(self, spec_obj: "Spec", context: Dict[str, Any], match_obj: re.Match, line: str) -> Tuple["Spec", dict]:
+    def update_impl(
+        self, spec_obj: Spec, context: dict[str, Any], match_obj: re.Match[str], line: str
+    ) -> tuple[Spec, dict[str, Any]]:
         source_name, value = match_obj.groups()
         dictionary = getattr(spec_obj, f"{self.name}_dict")
         dictionary[source_name] = value
@@ -232,12 +248,14 @@ class _ListAndDict(_Tag):
 class _SplitValue(_NameValue):
     """Parse a (name->value) tag, and at the same time split the tag to a list."""
 
-    def __init__(self, name: str, pattern_obj: re.Pattern, sep: Optional[None] = None) -> None:
+    def __init__(self, name: str, pattern_obj: re.Pattern[str], sep: str | None = None) -> None:
         super().__init__(name, pattern_obj)
         self.name_list = f"{name}_list"
         self.sep = sep
 
-    def update_impl(self, spec_obj: "Spec", context: Dict[str, Any], match_obj: re.Match, line: str) -> Tuple["Spec", dict]:
+    def update_impl(
+        self, spec_obj: Spec, context: dict[str, Any], match_obj: re.Match[str], line: str
+    ) -> tuple[Spec, dict[str, Any]]:
         super().update_impl(spec_obj, context, match_obj, line)
 
         target_obj = _Tag.current_target(spec_obj, context)
@@ -248,17 +266,20 @@ class _SplitValue(_NameValue):
         return spec_obj, context
 
 
-def re_tag_compile(tag: AnyStr) -> re.Pattern:
+def re_tag_compile(tag: str) -> re.Pattern[str]:
     return re.compile(tag, re.IGNORECASE)
 
 
 class _DummyMacroDef(_Tag):
     """Parse global macro definitions."""
 
-    def __init__(self, name: str, pattern_obj: re.Pattern) -> None:
+    def __init__(self, name: str, pattern_obj: re.Pattern[str]) -> None:
         super().__init__(name, pattern_obj, str)
 
-    def update_impl(self, spec_obj: "Spec", context: Dict[str, Any], _: re.Match, line: str) -> Tuple["Spec", dict]:
+    def update_impl(
+        self, spec_obj: Spec, context: dict[str, Any], match_obj: re.Match[str], line: str
+    ) -> tuple[Spec, dict[str, Any]]:
+        del match_obj
         context["line_processor"] = None
         if warnings_enabled:
             warn("Unknown macro: " + line)
@@ -298,7 +319,7 @@ _tag_names = [tag.name for tag in _tags]
 _macro_pattern = re.compile(r"%{(\S+?)\}|%(\w+?)\b")
 
 
-def _parse(spec_obj: "Spec", context: Dict[str, Any], line: str) -> Any:
+def _parse(spec_obj: Spec, context: dict[str, Any], line: str) -> Any:
     for tag in _tags:
         match = tag.test(line)
         if match:
@@ -433,8 +454,8 @@ class Package:
             ]:
                 setattr(self, tag.name, None)
 
-        self.sources_dict: Dict[str, str] = {}
-        self.patches_dict: Dict[str, str] = {}
+        self.sources_dict: dict[str, str] = {}
+        self.patches_dict: dict[str, str] = {}
         self.name = name
         self.is_subpackage = False
 
@@ -453,15 +474,15 @@ class Spec:
             else:
                 setattr(self, tag.name, None)
 
-        self.sources_dict: Dict[str, str] = {}
-        self.patches_dict: Dict[str, str] = {}
-        self.macros: Dict[str, str] = {"nil": ""}
+        self.sources_dict: dict[str, str] = {}
+        self.patches_dict: dict[str, str] = {}
+        self.macros: dict[str, str] = {"nil": ""}
 
         self.name: str | None
-        self.packages: List[Package] = []
+        self.packages: list[Package] = []
 
     @property
-    def packages_dict(self) -> Dict[str, Package]:
+    def packages_dict(self) -> dict[str, Package]:
         """All packages in this RPM spec as a dictionary.
 
         You can access the individual packages by their package name, e.g.,
@@ -473,7 +494,7 @@ class Spec:
         return dict(zip([package.name for package in self.packages], self.packages))
 
     @classmethod
-    def from_file(cls, filename: str) -> "Spec":
+    def from_file(cls, filename: str) -> Spec:
         """Creates a new Spec object from a given file.
 
         :param filename: The path to the spec file.
@@ -488,7 +509,7 @@ class Spec:
         return spec
 
     @classmethod
-    def from_string(cls, string: str) -> "Spec":
+    def from_string(cls, string: str) -> Spec:
         """Creates a new Spec object from a given string.
 
         :param string: The contents of a spec file.
@@ -519,7 +540,7 @@ def replace_macros(string: str, spec: Spec, max_attempts: int = 1000) -> str:
     """
     assert isinstance(spec, Spec)
 
-    def get_first_non_none_value(values: Tuple[Any, ...]) -> Any:
+    def get_first_non_none_value(values: tuple[Any, ...]) -> Any:
         return next((v for v in values if v is not None), None)
 
     def is_conditional_macro(macro: str) -> bool:
@@ -531,7 +552,7 @@ def replace_macros(string: str, spec: Spec, max_attempts: int = 1000) -> str:
     def is_negation_macro(macro: str) -> bool:
         return macro.startswith("!")
 
-    def get_replacement_string(match: re.Match) -> str:
+    def get_replacement_string(match: re.Match[str]) -> str:
         # pylint: disable=too-many-return-statements
         groups = match.groups()
         macro_name: str = get_first_non_none_value(groups)
