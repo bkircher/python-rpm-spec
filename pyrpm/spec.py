@@ -9,7 +9,7 @@ from __future__ import annotations
 import os
 import re
 from warnings import warn
-from abc import ABCMeta, abstractmethod
+from abc import ABC, ABCMeta, abstractmethod
 from typing import Any, Callable, TypeVar, cast
 
 F = TypeVar("F", bound=Callable[..., Any])
@@ -97,7 +97,7 @@ class _NameValue(_Tag):
         return spec_obj, context
 
 
-class _SetterMacroDef(_Tag):
+class _SetterMacroDef(_Tag, ABC):
     """Parse global macro definitions."""
 
     def __init__(self, name: str, pattern_obj: re.Pattern[str]) -> None:
@@ -237,7 +237,7 @@ class _ListAndDict(_Tag):
         dictionary[source_name] = value
         target_obj = _Tag.current_target(spec_obj, context)
         # If we are in a subpackage, add sources and patches to the subpackage dicts as well
-        if hasattr(target_obj, "is_subpackage") and target_obj.is_subpackage:
+        if isinstance(target_obj, Package) and target_obj.is_subpackage:
             dictionary = getattr(target_obj, f"{self.name}_dict")
             dictionary[source_name] = value
             getattr(target_obj, self.name).append(value)
@@ -435,27 +435,70 @@ class Package:
 
     """
 
+    name: str
+    summary: str | None
+    description: str | None
+    changelog: str | None
+    license: str | None
+    group: str | None
+    url: str | None
+    buildroot: str | None
+    epoch: str | None
+    release: str | None
+    version: str | None
+    buildarch: str | None
+    buildarch_list: list[str]
+    excludearch: str | None
+    excludearch_list: list[str]
+    exclusivearch: str | None
+    exclusivearch_list: list[str]
+    sources: list[str]
+    sources_dict: dict[str, str]
+    patches: list[str]
+    patches_dict: dict[str, str]
+    build_requires: list["Requirement"]
+    requires: list["Requirement"]
+    conflicts: list[str]
+    obsoletes: list[str]
+    provides: list[str]
+    is_subpackage: bool
+
     def __init__(self, name: str) -> None:
         assert isinstance(name, str)
 
         for tag in _tags:
-            if tag.attr_type is list and tag.name in [
-                "build_requires",
-                "requires",
-                "conflicts",
-                "obsoletes",
-                "provides",
-                "sources",
-                "patches",
-            ]:
+            if tag.attr_type is list:
+                if tag.name == "packages":
+                    continue
                 setattr(self, tag.name, tag.attr_type())
-            elif tag.name in [
-                "description",
-            ]:
+            else:
                 setattr(self, tag.name, None)
 
+        self.summary = None
+        self.description = None
+        self.changelog = None
+        self.license = None
+        self.group = None
+        self.url = None
+        self.buildroot = None
+        self.version = None
+        self.epoch = None
+        self.release = None
+        self.buildarch = None
+        self.excludearch = None
+        self.exclusivearch = None
+        self.buildarch_list: list[str] = []
+        self.excludearch_list: list[str] = []
+        self.exclusivearch_list: list[str] = []
+        self.sources: list[str] = []
         self.sources_dict: dict[str, str] = {}
+        self.patches: list[str] = []
         self.patches_dict: dict[str, str] = {}
+        self.build_requires: list[Requirement] = []
+        self.requires: list[Requirement] = []
+        self.conflicts: list[str] = []
+        self.obsoletes: list[str] = []
+        self.provides: list[str] = []
         self.name = name
         self.is_subpackage = False
 
@@ -467,6 +510,35 @@ class Package:
 class Spec:
     """Represents a single spec file."""
 
+    name: str | None
+    version: str | None
+    epoch: str | None
+    release: str | None
+    summary: str | None
+    description: str | None
+    changelog: str | None
+    license: str | None
+    group: str | None
+    url: str | None
+    buildroot: str | None
+    buildarch: str | None
+    buildarch_list: list[str]
+    excludearch: str | None
+    excludearch_list: list[str]
+    exclusivearch: str | None
+    exclusivearch_list: list[str]
+    sources: list[str]
+    sources_dict: dict[str, str]
+    patches: list[str]
+    patches_dict: dict[str, str]
+    build_requires: list["Requirement"]
+    requires: list["Requirement"]
+    conflicts: list[str]
+    obsoletes: list[str]
+    provides: list[str]
+    packages: list["Package"]
+    macros: dict[str, str]
+
     def __init__(self) -> None:
         for tag in _tags:
             if tag.attr_type is list:
@@ -474,11 +546,34 @@ class Spec:
             else:
                 setattr(self, tag.name, None)
 
+        self.name = None
+        self.version = None
+        self.epoch = None
+        self.release = None
+        self.summary = None
+        self.description = None
+        self.changelog = None
+        self.license = None
+        self.group = None
+        self.url = None
+        self.buildroot = None
+        self.buildarch = None
+        self.excludearch = None
+        self.exclusivearch = None
+        self.buildarch_list: list[str] = []
+        self.excludearch_list: list[str] = []
+        self.exclusivearch_list: list[str] = []
+        self.sources: list[str] = []
         self.sources_dict: dict[str, str] = {}
+        self.patches: list[str] = []
         self.patches_dict: dict[str, str] = {}
+        self.build_requires: list[Requirement] = []
+        self.requires: list[Requirement] = []
+        self.conflicts: list[str] = []
+        self.obsoletes: list[str] = []
+        self.provides: list[str] = []
         self.macros: dict[str, str] = {"nil": ""}
 
-        self.name: str | None
         self.packages: list[Package] = []
 
     @property
