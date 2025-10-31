@@ -38,6 +38,10 @@ jobs:
         run: |
           mypy .
 
+      - name: Run basedpyright
+        run: |
+          python -m basedpyright
+
       - name: Run linter
         run: |
           pylint --rcfile=.pylintrc pyrpm
