@@ -1,3 +1,4 @@
+basedpyright==1.32.1
 black==24.10.0
 coverage==7.11.0
 flit==3.12.0

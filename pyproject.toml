@@ -14,3 +14,6 @@ description-file = "README.md"
 [tool.ruff]
 target-version = "py313"
 line-length = 130
+
+[tool.basedpyright]
+reportExplicitAny = false
