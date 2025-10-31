@@ -7,11 +7,11 @@ This module allows to parse RPM spec files and gives simple access to various bi
 from __future__ import annotations
 
 import os
-import sys
 import re
+import sys
 from warnings import warn
-from abc import ABC, ABCMeta, abstractmethod
-from typing import Any, Callable, TypeVar, cast
+from abc import ABCMeta, abstractmethod
+from typing import Any, Callable, ClassVar, TypeVar, cast
 
 F = TypeVar("F", bound=Callable[..., Any])
 
@@ -26,7 +26,7 @@ else:
             return func
 
 
-__all__ = ["Spec", "replace_macros", "Package", "warnings_enabled"]
+__all__: list[str] = ["Spec", "replace_macros", "Package", "warnings_enabled"]
 
 
 # Set this to True if you want the library to issue warnings during parsing.
@@ -34,6 +34,10 @@ warnings_enabled: bool = False
 
 
 class _Tag(metaclass=ABCMeta):
+    name: str
+    pattern_obj: re.Pattern[str]
+    attr_type: type[Any]
+
     def __init__(self, name: str, pattern_obj: re.Pattern[str], attr_type: type[Any]) -> None:
         self.name = name
         self.pattern_obj = pattern_obj
@@ -42,7 +46,9 @@ class _Tag(metaclass=ABCMeta):
     def test(self, line: str) -> re.Match[str] | None:
         return re.search(self.pattern_obj, line)
 
-    def update(self, spec_obj: Spec, context: dict[str, Any], match_obj: re.Match[str], line: str) -> Any:
+    def update(
+        self, spec_obj: Spec, context: dict[str, Any], match_obj: re.Match[str], line: str
+    ) -> tuple["Spec", dict[str, Any]]:
         """Update given spec object and parse context and return them again.
 
         :param spec_obj: An instance of Spec class
@@ -67,9 +73,10 @@ class _Tag(metaclass=ABCMeta):
 
     @staticmethod
     def current_target(spec_obj: Spec, context: dict[str, Any]) -> Spec | Package:
-        target_obj = spec_obj
-        if context["current_subpackage"] is not None:
-            target_obj = context["current_subpackage"]
+        target_obj: Spec | Package = spec_obj
+        current_subpackage = context.get("current_subpackage")
+        if isinstance(current_subpackage, Package):
+            target_obj = current_subpackage
         return target_obj
 
 
@@ -79,13 +86,14 @@ class _NameValue(_Tag):
     def __init__(self, name: str, pattern_obj: re.Pattern[str], attr_type: type[Any] | None = None) -> None:
         super().__init__(name, pattern_obj, cast(type[Any], attr_type if attr_type else str))
 
+    @override
     def update_impl(
         self, spec_obj: Spec, context: dict[str, Any], match_obj: re.Match[str], line: str
     ) -> tuple[Spec, dict[str, Any]]:
         if self.name == "changelog":
             context["current_subpackage"] = None
 
-        target_obj = _Tag.current_target(spec_obj, context)
+        target_obj: Spec | Package = _Tag.current_target(spec_obj, context)
         value = match_obj.group(1)
 
         # Sub-packages
@@ -101,44 +109,13 @@ class _NameValue(_Tag):
         return spec_obj, context
 
 
-class _SetterMacroDef(_Tag, ABC):
-    """Parse global macro definitions."""
-
-    def __init__(self, name: str, pattern_obj: re.Pattern[str]) -> None:
-        super().__init__(name, pattern_obj, str)
-
-    @abstractmethod
-    def get_namespace(self, spec_obj: Spec, context: dict[str, Any]) -> Spec:
-        raise NotImplementedError()
-
-    def update_impl(
-        self, spec_obj: Spec, context: dict[str, Any], match_obj: re.Match[str], line: str
-    ) -> tuple[Spec, dict[str, Any]]:
-        name, value = match_obj.groups()
-        setattr(self.get_namespace(spec_obj, context), name, str(value))
-        return spec_obj, context
-
-
-class _GlobalMacroDef(_SetterMacroDef):
-    """Parse global macro definitions."""
-
-    def get_namespace(self, spec_obj: Spec, context: dict[str, Any]) -> Spec:
-        return spec_obj
-
-
-class _LocalMacroDef(_SetterMacroDef):
-    """Parse define macro definitions."""
-
-    def get_namespace(self, spec_obj: Spec, context: dict[str, Any]) -> Spec:
-        return context["current_subpackage"]
-
-
 class _MacroDef(_Tag):
     """Parse global macro definitions."""
 
     def __init__(self, name: str, pattern_obj: re.Pattern[str]) -> None:
         super().__init__(name, pattern_obj, str)
 
+    @override
     def update_impl(
         self, spec_obj: Spec, context: dict[str, Any], match_obj: re.Match[str], line: str
     ) -> tuple[Spec, dict[str, Any]]:
@@ -170,10 +147,11 @@ class _List(_Tag):
     def __init__(self, name: str, pattern_obj: re.Pattern[str]) -> None:
         super().__init__(name, pattern_obj, list)
 
+    @override
     def update_impl(
         self, spec_obj: Spec, context: dict[str, Any], match_obj: re.Match[str], line: str
     ) -> tuple[Spec, dict[str, Any]]:
-        target_obj = _Tag.current_target(spec_obj, context)
+        target_obj: Spec | Package = _Tag.current_target(spec_obj, context)
 
         if not hasattr(target_obj, self.name):
             setattr(target_obj, self.name, [])
@@ -188,7 +166,8 @@ class _List(_Tag):
             context["current_subpackage"] = package
             package.is_subpackage = True
             spec_obj.packages.append(package)
-        elif self.name in [
+            return spec_obj, context
+        if self.name in [
             "build_requires",
             "requires",
             "conflicts",
@@ -220,9 +199,10 @@ class _List(_Tag):
 
             for val in values:
                 requirement = Requirement(val)
-                getattr(target_obj, self.name).append(requirement)
-        else:
-            getattr(target_obj, self.name).append(value)
+                cast("list[Requirement]", getattr(target_obj, self.name)).append(requirement)
+            return spec_obj, context
+        target_list = cast("list[str]", getattr(target_obj, self.name))
+        target_list.append(value)
 
         return spec_obj, context
 
@@ -233,37 +213,42 @@ class _ListAndDict(_Tag):
     def __init__(self, name: str, pattern_obj: re.Pattern[str]) -> None:
         super().__init__(name, pattern_obj, list)
 
+    @override
     def update_impl(
         self, spec_obj: Spec, context: dict[str, Any], match_obj: re.Match[str], line: str
     ) -> tuple[Spec, dict[str, Any]]:
         source_name, value = match_obj.groups()
-        dictionary = getattr(spec_obj, f"{self.name}_dict")
-        dictionary[source_name] = value
-        target_obj = _Tag.current_target(spec_obj, context)
+        spec_dictionary = cast("dict[str, str]", getattr(spec_obj, f"{self.name}_dict"))
+        spec_dictionary[source_name] = value
+        target_obj: Spec | Package = _Tag.current_target(spec_obj, context)
         # If we are in a subpackage, add sources and patches to the subpackage dicts as well
         if isinstance(target_obj, Package) and target_obj.is_subpackage:
-            dictionary = getattr(target_obj, f"{self.name}_dict")
-            dictionary[source_name] = value
-            getattr(target_obj, self.name).append(value)
-        getattr(spec_obj, self.name).append(value)
+            package_dictionary = cast("dict[str, str]", getattr(target_obj, f"{self.name}_dict"))
+            package_dictionary[source_name] = value
+            cast("list[str]", getattr(target_obj, self.name)).append(value)
+        cast("list[str]", getattr(spec_obj, self.name)).append(value)
         return spec_obj, context
 
 
 class _SplitValue(_NameValue):
     """Parse a (name->value) tag, and at the same time split the tag to a list."""
 
+    name_list: str
+    sep: str | None
+
     def __init__(self, name: str, pattern_obj: re.Pattern[str], sep: str | None = None) -> None:
         super().__init__(name, pattern_obj)
         self.name_list = f"{name}_list"
         self.sep = sep
 
+    @override
     def update_impl(
         self, spec_obj: Spec, context: dict[str, Any], match_obj: re.Match[str], line: str
     ) -> tuple[Spec, dict[str, Any]]:
-        super().update_impl(spec_obj, context, match_obj, line)
+        spec_obj, context = super().update_impl(spec_obj, context, match_obj, line)
 
-        target_obj = _Tag.current_target(spec_obj, context)
-        value: str = getattr(target_obj, self.name)
+        target_obj: Spec | Package = _Tag.current_target(spec_obj, context)
+        value = cast(str, getattr(target_obj, self.name))
         values = value.split(self.sep)
         setattr(target_obj, self.name_list, values)
 
@@ -280,6 +265,7 @@ class _DummyMacroDef(_Tag):
     def __init__(self, name: str, pattern_obj: re.Pattern[str]) -> None:
         super().__init__(name, pattern_obj, str)
 
+    @override
     def update_impl(
         self, spec_obj: Spec, context: dict[str, Any], match_obj: re.Match[str], line: str
     ) -> tuple[Spec, dict[str, Any]]:
@@ -323,19 +309,18 @@ _tag_names = [tag.name for tag in _tags]
 _macro_pattern = re.compile(r"%{(\S+?)\}|%(\w+?)\b")
 
 
-def _parse(spec_obj: Spec, context: dict[str, Any], line: str) -> Any:
+def _parse(spec_obj: Spec, context: dict[str, Any], line: str) -> tuple[Spec, dict[str, Any]]:
     for tag in _tags:
         match = tag.test(line)
         if match:
             if "multiline" in context:
                 context.pop("multiline", None)
             return tag.update(spec_obj, context, match, line)
-    if "multiline" in context:
-        target_obj = _Tag.current_target(spec_obj, context)
-        previous_txt = getattr(target_obj, context["multiline"], "")
-        if previous_txt is None:
-            previous_txt = ""
-        setattr(target_obj, context["multiline"], str(previous_txt) + line + os.linesep)
+    multiline_key = context.get("multiline")
+    if isinstance(multiline_key, str):
+        target_obj: Spec | Package = _Tag.current_target(spec_obj, context)
+        previous_txt = getattr(target_obj, multiline_key, "") or ""
+        setattr(target_obj, multiline_key, str(previous_txt) + line + os.linesep)
 
     return spec_obj, context
 
@@ -367,11 +352,11 @@ class Requirement:
     version.
     """
 
-    expr = re.compile(r"(.*?)\s+([<>]=?|=)\s+(\S+)")
+    expr: ClassVar[re.Pattern[str]] = re.compile(r"(.*?)\s+([<>]=?|=)\s+(\S+)")
 
     def __init__(self, name: str) -> None:
         assert isinstance(name, str)
-        self.line = name
+        self.line: str = name
         self.name: str
         self.operator: str | None
         self.version: str | None
@@ -439,6 +424,7 @@ class Package:
 
     """
 
+    # pylint: disable=too-many-instance-attributes
     name: str
     summary: str | None
     description: str | None
@@ -491,18 +477,18 @@ class Package:
         self.buildarch = None
         self.excludearch = None
         self.exclusivearch = None
-        self.buildarch_list: list[str] = []
-        self.excludearch_list: list[str] = []
-        self.exclusivearch_list: list[str] = []
-        self.sources: list[str] = []
-        self.sources_dict: dict[str, str] = {}
-        self.patches: list[str] = []
-        self.patches_dict: dict[str, str] = {}
-        self.build_requires: list[Requirement] = []
-        self.requires: list[Requirement] = []
-        self.conflicts: list[str] = []
-        self.obsoletes: list[str] = []
-        self.provides: list[str] = []
+        self.buildarch_list = []
+        self.excludearch_list = []
+        self.exclusivearch_list = []
+        self.sources = []
+        self.sources_dict = {}
+        self.patches = []
+        self.patches_dict = {}
+        self.build_requires = []
+        self.requires = []
+        self.conflicts = []
+        self.obsoletes = []
+        self.provides = []
         self.name = name
         self.is_subpackage = False
 
@@ -514,6 +500,7 @@ class Package:
 class Spec:
     """Represents a single spec file."""
 
+    # pylint: disable=too-many-instance-attributes
     name: str | None
     version: str | None
     epoch: str | None
@@ -564,21 +551,21 @@ class Spec:
         self.buildarch = None
         self.excludearch = None
         self.exclusivearch = None
-        self.buildarch_list: list[str] = []
-        self.excludearch_list: list[str] = []
-        self.exclusivearch_list: list[str] = []
-        self.sources: list[str] = []
-        self.sources_dict: dict[str, str] = {}
-        self.patches: list[str] = []
-        self.patches_dict: dict[str, str] = {}
-        self.build_requires: list[Requirement] = []
-        self.requires: list[Requirement] = []
-        self.conflicts: list[str] = []
-        self.obsoletes: list[str] = []
-        self.provides: list[str] = []
-        self.macros: dict[str, str] = {"nil": ""}
+        self.buildarch_list = []
+        self.excludearch_list = []
+        self.exclusivearch_list = []
+        self.sources = []
+        self.sources_dict = {}
+        self.patches = []
+        self.patches_dict = {}
+        self.build_requires = []
+        self.requires = []
+        self.conflicts = []
+        self.obsoletes = []
+        self.provides = []
+        self.macros = {"nil": ""}
 
-        self.packages: list[Package] = []
+        self.packages = []
 
     @property
     def packages_dict(self) -> dict[str, Package]:
@@ -639,9 +626,6 @@ def replace_macros(string: str, spec: Spec, max_attempts: int = 1000) -> str:
     """
     assert isinstance(spec, Spec)
 
-    def get_first_non_none_value(values: tuple[Any, ...]) -> Any:
-        return next((v for v in values if v is not None), None)
-
     def is_conditional_macro(macro: str) -> bool:
         return macro.startswith(("?", "!"))
 
@@ -651,11 +635,22 @@ def replace_macros(string: str, spec: Spec, max_attempts: int = 1000) -> str:
     def is_negation_macro(macro: str) -> bool:
         return macro.startswith("!")
 
+    def get_macro_value(macro: str, default: str = "") -> str:
+        dict_value = spec.macros.get(macro)
+        if dict_value is not None:
+            return dict_value
+        sentinel = object()
+        attr_value = getattr(spec, macro, sentinel)
+        if attr_value is sentinel or attr_value is None:
+            return default
+        return str(cast(object, attr_value))
+
     def get_replacement_string(match: re.Match[str]) -> str:
         # pylint: disable=too-many-return-statements
-        groups = match.groups()
-        macro_name: str = get_first_non_none_value(groups)
-        assert macro_name, "Expected a non None value"
+        groups: tuple[str | None, ...] = match.groups()
+        macro_name = next((group for group in groups if group is not None), None)
+        if macro_name is None:
+            return match.group(0)
         if is_conditional_macro(macro_name) and spec:
             parts = macro_name[1:].split(sep=":", maxsplit=1)
             assert parts, "Expected a ':' in macro name'"
@@ -669,9 +664,10 @@ def replace_macros(string: str, spec: Spec, max_attempts: int = 1000) -> str:
                         return spec.macros[macro]
 
                     if hasattr(spec, macro):
-                        return getattr(spec, macro)
+                        attr_value = cast(object, getattr(spec, macro))
+                        return "" if attr_value is None else str(attr_value)
 
-                    assert False, "Unreachable"
+                    raise AssertionError("Unreachable")
 
                 return ""
 
@@ -679,14 +675,17 @@ def replace_macros(string: str, spec: Spec, max_attempts: int = 1000) -> str:
                 if len(parts) == 2:
                     return parts[1]
 
-                return spec.macros.get(macro, getattr(spec, macro, ""))
+                return get_macro_value(macro, "")
 
         if spec:
-            value = spec.macros.get(macro_name, getattr(spec, macro_name, None))
-            if value is not None:
-                return str(value)
+            macro_value = spec.macros.get(macro_name)
+            if macro_value is not None:
+                return macro_value
+            attr_value = cast(object, getattr(spec, macro_name, None))
+            if attr_value is not None:
+                return str(attr_value)
 
-        return match.string[match.start() : match.end()]
+        return match.group(0)
 
     attempt = 0
     ret = ""

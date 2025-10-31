@@ -5,7 +5,7 @@ from pyrpm.spec import Spec
 
 
 # Spec files to skip because of known issues.
-skipfiles = ()
+skipfiles: tuple[str, ...] = ()
 
 
 def skip(filename: str) -> bool:
@@ -29,4 +29,4 @@ for _, _, filenames in os.walk(rpmspecs):
     for filename in filenames:
         if not skip(filename):
             print(filename)
-            Spec.from_file(os.path.join(rpmspecs, filename))
+            _ = Spec.from_file(os.path.join(rpmspecs, filename))
