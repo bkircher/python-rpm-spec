@@ -11,16 +11,17 @@ import re
 import sys
 from warnings import warn
 from abc import ABCMeta, abstractmethod
-from typing import Any, Callable, ClassVar, TypeVar, cast
+from typing import TYPE_CHECKING, Any, Callable, ClassVar, TypeVar, cast
 
-F = TypeVar("F", bound=Callable[..., Any])
-
-if sys.version_info >= (3, 12):
+if TYPE_CHECKING:
+    from typing_extensions import override
+elif sys.version_info >= (3, 12):
     from typing import override
 else:
     try:
         from typing_extensions import override
     except ImportError:
+        F = TypeVar("F", bound=Callable[..., Any])
 
         def override(func: F, /) -> F:
             return func
