@@ -2,6 +2,7 @@
 
 ## 0.x.y (YYYY-MM-DD)
 
+- Clean up typing; add basedpyright to CI.
 - Fix a possible endless loop with recursice macro expansion.
 - Add support for Python 3.14.
 - Drop support for Python 3.9 version.
