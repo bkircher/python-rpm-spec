@@ -120,15 +120,24 @@ class _MacroDef(_Tag):
     def update_impl(self, spec_obj: "Spec", context: Dict[str, Any], match_obj: re.Match, line: str) -> Tuple["Spec", dict]:
         name, value = match_obj.groups()
         raw_value = str(value)
-        try:
-            expanded_value = replace_macros(raw_value, spec_obj)
-        except RuntimeError:
-            expanded_value = raw_value
-        spec_obj.macros[name] = expanded_value
+        stored_value = raw_value
+        if _macro_references_itself(raw_value, name):
+            try:
+                stored_value = replace_macros(raw_value, spec_obj)
+            except RuntimeError:
+                stored_value = raw_value
+        spec_obj.macros[name] = stored_value
         if name not in _tag_names:
             # Also make available as attribute of spec object
-            setattr(spec_obj, name, expanded_value)
+            setattr(spec_obj, name, stored_value)
         return spec_obj, context
+
+
+def _macro_references_itself(raw_value: str, macro_name: str) -> bool:
+    """Check if a macro definition references itself."""
+    brace_pattern = rf"(?<!%)%{{{re.escape(macro_name)}}}"
+    bare_pattern = rf"(?<!%)%{re.escape(macro_name)}\b"
+    return bool(re.search(brace_pattern, raw_value) or re.search(bare_pattern, raw_value))
 
 
 class _List(_Tag):
@@ -331,8 +340,8 @@ class Requirement:
         assert isinstance(name, str)
         self.line = name
         self.name: str
-        self.operator: Optional[str]
-        self.version: Optional[str]
+        self.operator: str | None
+        self.version: str | None
         match = Requirement.expr.match(name)
         if match:
             self.name = match.group(1)
@@ -437,7 +446,7 @@ class Spec:
         self.patches_dict: Dict[str, str] = {}
         self.macros: Dict[str, str] = {"nil": ""}
 
-        self.name: Optional[str]
+        self.name: str | None
         self.packages: List[Package] = []
 
     @property

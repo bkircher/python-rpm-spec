@@ -208,6 +208,18 @@ Release: 1%{flagrel}
         )
         assert replace_macros(spec.release, spec) == "1.SAN"
 
+    def test_macro_conditional_expands_when_inputs_ready(self) -> None:
+        """Macros relying on later definitions should expand at use time."""
+        spec = Spec.from_string(
+            r"""
+%global extra %{?debug:.DEBUG}
+%global debug 1
+Release: 1%{extra}
+            """
+        )
+        assert spec.macros["extra"] == "%{?debug:.DEBUG}"
+        assert replace_macros(spec.release, spec) == "1.DEBUG"
+
     def test_replace_macro_raises_with_max_attempts_reached(self) -> None:
         """Test that replace_macros accepts a max_attempts
 
