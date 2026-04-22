@@ -3,7 +3,6 @@ import sys
 
 from pyrpm.spec import Spec
 
-
 # Spec files to skip because of known issues.
 skipfiles: tuple[str, ...] = ()
 

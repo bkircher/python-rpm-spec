@@ -113,13 +113,11 @@ class TestSpecFileParser:
 
     @pytest.mark.parametrize("element", ["BuildRequires", "Requires", "Conflicts", "Obsoletes", "Provides"])
     def test_end_of_line_comment_in_list(self, element: str):
-        spec = Spec.from_string(
-            f"""
+        spec = Spec.from_string(f"""
 {element}:  a
 {element}:  b # some comment
 {element}:  c # some comment
-"""
-        )
+""")
         assert getattr(spec, camel_to_snake(element)) == ["a", "b", "c"]
 
     def test_packages_dict_property(self) -> None:
@@ -171,33 +169,27 @@ class TestSpecFileParser:
         See issue https://github.com/bkircher/python-rpm-spec/issues/33.
 
         """
-        spec = Spec.from_string(
-            r"""
+        spec = Spec.from_string(r"""
 %global myversion 1.2.3
 Version: %{myversion}
-        """
-        )
+        """)
         assert spec.version is not None
         assert replace_macros(spec.version, spec) == "1.2.3"
 
-        spec = Spec.from_string(
-            r"""
+        spec = Spec.from_string(r"""
 %global version 1.2.3
 Version: %{version}
-        """
-        )
+        """)
         assert spec.version is not None
         assert replace_macros(spec.version, spec) == "1.2.3"
 
     def test_custom_conditional_macro(self) -> None:
         """Test that a user-defined conditional macro is being replaced."""
-        spec = Spec.from_string(
-            r"""
+        spec = Spec.from_string(r"""
 Name: foo
 Version: 1
 Release: 1%{?dist}
-        """
-        )
+        """)
         spec.macros["dist"] = ".el8"
         assert spec.name is not None
         assert spec.version is not None
@@ -206,25 +198,21 @@ Release: 1%{?dist}
 
     def test_macro_appends_to_itself(self) -> None:
         """Macros that append to their own value should not loop endlessly."""
-        spec = Spec.from_string(
-            r"""
+        spec = Spec.from_string(r"""
 %global flagrel %{nil}
 %global flagrel %{flagrel}.SAN
 Release: 1%{flagrel}
-            """
-        )
+            """)
         assert spec.release is not None
         assert replace_macros(spec.release, spec) == "1.SAN"
 
     def test_macro_conditional_expands_when_inputs_ready(self) -> None:
         """Macros relying on later definitions should expand at use time."""
-        spec = Spec.from_string(
-            r"""
+        spec = Spec.from_string(r"""
 %global extra %{?debug:.DEBUG}
 %global debug 1
 Release: 1%{extra}
-            """
-        )
+            """)
         assert spec.macros["extra"] == "%{?debug:.DEBUG}"
         assert spec.release is not None
         assert replace_macros(spec.release, spec) == "1.DEBUG"
@@ -235,12 +223,10 @@ Release: 1%{extra}
         Make sure that replace_macros raises RuntimeError if max_attempts is reached.
 
         """
-        spec = Spec.from_string(
-            r"""
+        spec = Spec.from_string(r"""
 %global version 1
 Version: %{version}
-        """
-        )
+        """)
         assert spec.version is not None
         with pytest.raises(RuntimeError):
             _ = replace_macros(spec.version, spec, max_attempts=1)
@@ -283,8 +269,7 @@ Version: %{version}
         )
 
     def test_multiline_context_from_string(self) -> None:
-        spec = Spec.from_string(
-            r"""
+        spec = Spec.from_string(r"""
 Name: foo
 Version: 1
 Release: 1
@@ -301,8 +286,7 @@ line 3
 
 * Thu Jun 16 2022 First Last <name@example.com> - 1-1
 - blah blah blah.
-"""
-        )
+""")
         assert spec.description == os.linesep.join(["line 1", "", "line 2", "line 3", "", ""])
         assert spec.changelog == os.linesep.join(
             [
@@ -374,22 +358,18 @@ class TestReplaceMacro:
         )
 
     def test_replace_user_defined_macro(self) -> None:
-        spec = Spec.from_string(
-            """
+        spec = Spec.from_string("""
 Name:           foo
 Version:        2
 %define var   bar
-"""
-        )
+""")
         s = "%{name}/%{version}/%{var}"
         assert replace_macros(s, spec) == "foo/2/bar"
 
     def test_replace_macro_without_braces(self) -> None:
-        spec = Spec.from_string(
-            """
+        spec = Spec.from_string("""
 %define var bar
-"""
-        )
+""")
         assert replace_macros("foo-%var", spec) == "foo-bar"
 
     def test_replace_macro_with_negative_conditional(self) -> None:
@@ -404,13 +384,11 @@ Version:        2
         )
 
     def test_replace_macro_with_positive_conditional(self) -> None:
-        spec = Spec.from_string(
-            """
+        spec = Spec.from_string("""
 Name:           git
 Version:        2.15.1
 %define rcrev   .rc0
-        """
-        )
+        """)
 
         assert (
             replace_macros(
@@ -421,12 +399,10 @@ Version:        2.15.1
         )
 
     def test_replace_macro_with_leading_exclamation_point(self) -> None:
-        spec = Spec.from_string(
-            """
+        spec = Spec.from_string("""
 Name:           git
 Version:        2.15.1
-        """
-        )
+        """)
 
         assert (
             replace_macros(
