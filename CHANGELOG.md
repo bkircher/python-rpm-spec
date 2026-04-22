@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.x.y (YYYY-MM-DD)
+## 0.17.0 (2026-04-22)
 
 - Clean up typing; add basedpyright to CI.
 - Fix a possible endless loop with recursive macro expansion.
