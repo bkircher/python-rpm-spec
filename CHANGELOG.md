@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- Drop support for Python 3.10.
+
 ## 0.17.0 (2026-04-22)
 
 - Clean up typing; add basedpyright to CI.

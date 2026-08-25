@@ -29,8 +29,7 @@ spec file.
 
 ## Supported Python versions
 
-All [current Python branches](https://devguide.python.org/versions/#versions)
-are supported.
+Python 3.11 and later versions are supported.
 
 | Python Version | Supported Until |
 | :------------- | --------------: |
@@ -38,7 +37,6 @@ are supported.
 | 3.13           |         2029-10 |
 | 3.12           |         2028-10 |
 | 3.11           |         2027-10 |
-| 3.10           |         2026-10 |
 
 ## Install
 
