@@ -1,15 +1,18 @@
 [build-system]
-requires = ["flit_core >=2,<4"]
+requires = ["flit_core >=2,<5"]
 build-backend = "flit_core.buildapi"
 
-[tool.flit.metadata]
-dist-name = "python-rpm-spec"
-module = "pyrpm"
-author = "Ben Kircher"
-author-email = "bkircher@0xadd.de"
-home-page = "https://github.com/bkircher/python-rpm-spec"
+[project]
+name = "python-rpm-spec"
+authors = [
+    {"name" = "Ben Kircher", "email" = "bkircher@0xadd.de"},
+]
+urls.homepage = "https://github.com/bkircher/python-rpm-spec"
 requires-python = ">=3.10"
-description-file = "README.md"
+dynamic = ["description", "version"]
+
+[tool.flit.module]
+name = "pyrpm"
 
 [tool.ruff]
 target-version = "py313"
