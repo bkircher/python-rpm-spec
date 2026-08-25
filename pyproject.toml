@@ -8,6 +8,7 @@ authors = [
     {"name" = "Ben Kircher", "email" = "bkircher@0xadd.de"},
 ]
 urls.homepage = "https://github.com/bkircher/python-rpm-spec"
+readme = "README.md"
 requires-python = ">=3.10"
 dynamic = ["description", "version"]
 
