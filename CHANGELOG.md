@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.18.0 (2026-08-25)
 
 - Update Flit to version 4.
 - Drop support for Python 3.10.
