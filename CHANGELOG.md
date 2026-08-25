@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Update Flit to version 4.
 - Drop support for Python 3.10.
 
 ## 0.17.0 (2026-04-22)
