@@ -10,8 +10,10 @@ on:
   workflow_dispatch:
 
 jobs:
-  publish:
+  build:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
       - uses: actions/checkout@v7
 
@@ -21,7 +23,31 @@ jobs:
           python-version: 3.14
           cache: pip
 
-      - name: Publish to PyPI using flit
-        uses: AsifArmanRahman/to-pypi-using-flit@v1
+      - name: Build distributions
+        run: |
+          python -m pip install build
+          python -m build
+
+      - name: Save distributions
+        uses: actions/upload-artifact@v7
         with:
-          password: ${{ secrets.PYPI_API_TOKEN }}
+          name: python-package-distributions
+          path: dist/
+
+  publish:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: pypi
+      url: https://pypi.org/p/python-rpm-spec
+    permissions:
+      id-token: write
+    steps:
+      - name: Download distributions
+        uses: actions/download-artifact@v8
+        with:
+          name: python-package-distributions
+          path: dist/
+
+      - name: Publish distributions
+        uses: pypa/gh-action-pypi-publish@release/v1
