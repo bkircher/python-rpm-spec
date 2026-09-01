@@ -1,9 +1,9 @@
 basedpyright==1.39.10
 black==26.5.1
-coverage==7.15.4
+coverage==7.16.0
 flit==4.0.2
 mypy==2.3.1
-pylint==4.0.7
+pylint==4.0.8
 pytest-asyncio==1.4.0
 pytest-cov==7.1.0
 pytest==9.1.1
