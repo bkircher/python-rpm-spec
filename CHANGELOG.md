@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- Parse the weak dependency tags `Recommends`, `Suggests`, `Supplements` and `Enhances`.
+
 ## 0.18.0 (2026-08-25)
 
 - Update Flit to version 4.

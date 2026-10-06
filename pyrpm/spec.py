@@ -174,6 +174,10 @@ class _List(_Tag):
             "conflicts",
             "obsoletes",
             "provides",
+            "recommends",
+            "suggests",
+            "supplements",
+            "enhances",
         ]:
             # Remove comments on same line
             value = value.split("#", 2)[0].rstrip()
@@ -299,6 +303,10 @@ _tags = [
     _List("conflicts", re_tag_compile(r"^Conflicts\s*:\s*(.+)")),
     _List("obsoletes", re_tag_compile(r"^Obsoletes\s*:\s*(.+)")),
     _List("provides", re_tag_compile(r"^Provides\s*:\s*(.+)")),
+    _List("recommends", re_tag_compile(r"^Recommends\s*:\s*(.+)")),
+    _List("suggests", re_tag_compile(r"^Suggests\s*:\s*(.+)")),
+    _List("supplements", re_tag_compile(r"^Supplements\s*:\s*(.+)")),
+    _List("enhances", re_tag_compile(r"^Enhances\s*:\s*(.+)")),
     _List("packages", re_tag_compile(r"^%package\s+(\S+)")),
     _MacroDef("define", re_tag_compile(r"^%define\s+(\S+)\s+(\S+)")),
     _MacroDef("global", re_tag_compile(r"^%global\s+(\S+)\s+(\S+)")),
@@ -452,6 +460,10 @@ class Package:
     conflicts: list[str]
     obsoletes: list[str]
     provides: list[str]
+    recommends: list["Requirement"]
+    suggests: list["Requirement"]
+    supplements: list["Requirement"]
+    enhances: list["Requirement"]
     is_subpackage: bool
 
     def __init__(self, name: str) -> None:
@@ -490,6 +502,10 @@ class Package:
         self.conflicts = []
         self.obsoletes = []
         self.provides = []
+        self.recommends = []
+        self.suggests = []
+        self.supplements = []
+        self.enhances = []
         self.name = name
         self.is_subpackage = False
 
@@ -528,6 +544,10 @@ class Spec:
     conflicts: list[str]
     obsoletes: list[str]
     provides: list[str]
+    recommends: list["Requirement"]
+    suggests: list["Requirement"]
+    supplements: list["Requirement"]
+    enhances: list["Requirement"]
     packages: list["Package"]
     macros: dict[str, str]
 
@@ -564,6 +584,10 @@ class Spec:
         self.conflicts = []
         self.obsoletes = []
         self.provides = []
+        self.recommends = []
+        self.suggests = []
+        self.supplements = []
+        self.enhances = []
         self.macros = {"nil": ""}
 
         self.packages = []

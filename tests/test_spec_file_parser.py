@@ -111,7 +111,10 @@ class TestSpecFileParser:
         for name in expected:
             assert name in actual
 
-    @pytest.mark.parametrize("element", ["BuildRequires", "Requires", "Conflicts", "Obsoletes", "Provides"])
+    @pytest.mark.parametrize(
+        "element",
+        ["BuildRequires", "Requires", "Conflicts", "Obsoletes", "Provides", "Recommends", "Suggests", "Supplements", "Enhances"],
+    )
     def test_end_of_line_comment_in_list(self, element: str):
         spec = Spec.from_string(f"""
 {element}:  a
@@ -119,6 +122,38 @@ class TestSpecFileParser:
 {element}:  c # some comment
 """)
         assert getattr(spec, camel_to_snake(element)) == ["a", "b", "c"]
+
+    def test_weak_dependencies(self) -> None:
+        spec = Spec.from_string("""
+Name: foo
+Version: 1.0
+Recommends: bar
+Suggests: baz >= 2.0
+Supplements: qux
+Enhances: quux
+""")
+        assert spec.recommends == [Requirement("bar")]
+        assert spec.suggests == [Requirement("baz >= 2.0")]
+        assert spec.suggests[0].name == "baz"
+        assert spec.suggests[0].version == "2.0"
+        assert spec.supplements == [Requirement("qux")]
+        assert spec.enhances == [Requirement("quux")]
+
+    def test_weak_dependencies_in_subpackage(self) -> None:
+        spec = Spec.from_string("""
+Name: foo
+Version: 1.0
+
+%package extra
+Summary: Extra
+Recommends: plugin >= 1.2
+
+%description extra
+Extra stuff.
+""")
+        package = spec.packages_dict["foo-extra"]
+        assert package.recommends == [Requirement("plugin >= 1.2")]
+        assert spec.recommends == []
 
     def test_packages_dict_property(self) -> None:
         spec = Spec.from_file(os.path.join(TEST_DATA, "perl-Array-Compare.spec"))
